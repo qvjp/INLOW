@@ -16,7 +16,8 @@ CRTEND_0 := $(shell $(CPP) $(CPPPARAMETER) -print-file-name=crtend.o)
 START_OBJ := $(BUILD)/arch/i686/crti.o $(CRTBEGIN_0)
 END_OBJ := $(CRTEND_0) $(BUILD)/arch/i686/crtn.o
 
-OBJ := 	gdt.o \
+OBJ := addressspace.o \
+		gdt.o \
 		idt.o \
 		interrupts.o \
 		kernel.o \

@@ -2,7 +2,7 @@
 #include <stddef.h>
 #include <inlow/kernel/print.h>
 
-static char* video = (char*) 0xB8000;
+static char* video = (char*) 0xC0000000;
 static int cursorPostX = 0;
 static int cursorPostY = 0;
 
