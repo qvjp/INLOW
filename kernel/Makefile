@@ -21,7 +21,8 @@ OBJ := addressspace.o \
 		idt.o \
 		interrupts.o \
 		kernel.o \
-		print.o
+		print.o \
+		physicalmemory.o
 		
 OBJ += arch/i686/interrupts.o \
 	   arch/i686/loader.o

@@ -59,7 +59,7 @@ struct idt_entry
 	(selector), \
 	0, \
 	(flags), \
-	(uint16_t)(((uintptr_t)(offset) >> 16) & 0xFFFF) \	
+	(uint16_t)(((uintptr_t)(offset) >> 16) & 0xFFFF) \
 }
 
 #define IDT_INTERRUPT_GATE 0xE

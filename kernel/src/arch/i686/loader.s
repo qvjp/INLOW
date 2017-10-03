@@ -11,6 +11,7 @@ _start:
 	# Add the page tables to the page directory
     movl $(pageTableBootstrap + 0x3), pageDirectory
     movl $(pageTableKernel + 0x3), pageDirectory + 0xC00
+	movl $(pageTablePhysicalMemory + 0x3), pageDirectory + 0xFF8
 
 	# Recursively map the page directory at 0xFFC00000
 	movl $(pageDirectory + 0x3), pageDirectory + 0xFFC
@@ -58,6 +59,8 @@ pageTableBootstrap:
     .skip 4096
 pageTableKernel:
     .skip 4096
+pageTablePhysicalMemory:
+	.skip 4096
 
 .section .text
 .type _start2, @function
