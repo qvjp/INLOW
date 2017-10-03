@@ -31,6 +31,12 @@ extern "C" InterruptContext* handleInterrupt(InterruptContext* context)
 	if (context->interrupt <= 31) //CPU Exception
 	{
 		Print::printf("Exception %u occurred!\n",context->interrupt);
+		Print::printf("eax: 0x%x, ebx: 0x%x, ecx: 0x%x, edx: 0x%x\n",
+		context->eax, context->ebx, context->ecx, context->edx);
+		Print::printf("edi: 0x%x, esi: 0x%x, ebp: 0x%x, error: 0x%x\n",
+		context->edi, context->esi, context->ebp, context->error);
+		Print::printf("eip: 0x%x, cs: 0x%x, eflags: 0x%x\n",
+		context->eip, context->cs, context->eflags);
 		// Halt the CPU
 		while (true)
 				asm volatile ("cli; hlt");
