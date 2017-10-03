@@ -17,6 +17,7 @@ _start:
 	push %ebx
 	push %eax
 
+	call _init
 	call kernel_main
 
 _halt:

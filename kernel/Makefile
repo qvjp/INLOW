@@ -9,10 +9,17 @@ CPPPARAMETER += -std=gnu++14 -ffreestanding -fno-exceptions -fno-rtti -Wall -Wex
 LDPARAMETER ?= -T linker.ld -ffreestanding -nostdlib
 LIBS ?= -lgcc
 
+CRTBEGIN_0 := $(shell $(CPP) $(CPPPARAMETER) -print-file-name=crtbegin.o)
+CRTEND_0 := $(shell $(CPP) $(CPPPARAMETER) -print-file-name=crtend.o)
+
+START_OBJ := $(BUILD)/arch/i686/crti.o $(CRTBEGIN_0)
+END_OBJ := $(CRTEND_0) $(BUILD)/arch/i686/crtn.o
+
 OBJ := kernel.o
 OBJ += arch/i686/start.o
 
-OBJ := $(addprefix $(BUILD)/, $(OBJ))
+OBJ := $(START_OBJ) $(addprefix $(BUILD)/, $(OBJ)) $(END_OBJ)
+
 all: $(BUILD)/kernel
 
 $(BUILD)/kernel: $(OBJ)
@@ -22,7 +29,7 @@ $(BUILD)/%.o: src/%.cpp
 	@mkdir -p $(dir $@)
 	$(CPP) $(CPPPARAMETER) -c -o $@ $^
 
-$(BUILD)/%.o: src/%.S
+$(BUILD)/%.o: src/%.s
 	@mkdir -p $(dir $@)
 	$(CPP) $(ASPARAMETER) -c -o $@ $^
 
