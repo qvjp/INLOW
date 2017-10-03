@@ -5,7 +5,7 @@ include ../build-config/config.mk
 BUILD = ../build/$(ARCH)/kernel
 
 CPPPARAMETER ?= -O2 -g
-CPPPARAMETER += -std=gnu++14 -ffreestanding -fno-exceptions -fno-rtti -Wall -Wextra
+CPPPARAMETER += -std=gnu++14 -ffreestanding -fno-exceptions -fno-rtti -Wall -Wextra -I include
 LDPARAMETER ?= -T linker.ld -ffreestanding -nostdlib
 LIBS ?= -lgcc
 
@@ -15,7 +15,8 @@ CRTEND_0 := $(shell $(CPP) $(CPPPARAMETER) -print-file-name=crtend.o)
 START_OBJ := $(BUILD)/arch/i686/crti.o $(CRTBEGIN_0)
 END_OBJ := $(CRTEND_0) $(BUILD)/arch/i686/crtn.o
 
-OBJ := kernel.o
+OBJ := kernel.o \
+		print.o
 OBJ += arch/i686/start.o
 
 OBJ := $(START_OBJ) $(addprefix $(BUILD)/, $(OBJ)) $(END_OBJ)
