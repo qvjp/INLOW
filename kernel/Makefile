@@ -16,7 +16,8 @@ START_OBJ := $(BUILD)/arch/i686/crti.o $(CRTBEGIN_0)
 END_OBJ := $(CRTEND_0) $(BUILD)/arch/i686/crtn.o
 
 OBJ := kernel.o \
-		print.o
+		print.o \
+		gdt.o
 OBJ += arch/i686/start.o
 
 OBJ := $(START_OBJ) $(addprefix $(BUILD)/, $(OBJ)) $(END_OBJ)
