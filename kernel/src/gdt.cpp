@@ -8,7 +8,7 @@ struct gdt_entry
 	uint8_t access;
 	uint8_t limit_high_flags;
 	uint8_t base_high;
-} __attribute__((__packed__));
+};
 
 #define GDT_ENTRY(base, limit, access, flags) \
 { \

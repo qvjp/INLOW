@@ -15,10 +15,14 @@ CRTEND_0 := $(shell $(CPP) $(CPPPARAMETER) -print-file-name=crtend.o)
 START_OBJ := $(BUILD)/arch/i686/crti.o $(CRTBEGIN_0)
 END_OBJ := $(CRTEND_0) $(BUILD)/arch/i686/crtn.o
 
-OBJ := kernel.o \
-		print.o \
-		gdt.o
-OBJ += arch/i686/start.o
+OBJ := 	gdt.o \
+		idt.o \
+		interrupts.o \
+		kernel.o \
+		print.o
+		
+OBJ += arch/i686/interrupts.o \
+	   arch/i686/start.o
 
 OBJ := $(START_OBJ) $(addprefix $(BUILD)/, $(OBJ)) $(END_OBJ)
 
