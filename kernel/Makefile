@@ -4,6 +4,7 @@ include ../build-config/config.mk
 
 BUILD = ../build/$(ARCH)/kernel
 
+ASPARAMETER += -Wa,--divide
 CPPPARAMETER ?= -O2 -g
 CPPPARAMETER += -std=gnu++14 -ffreestanding -fno-exceptions -fno-rtti -Wall -Wextra -I include
 LDPARAMETER ?= -T linker.ld -ffreestanding -nostdlib
@@ -22,7 +23,7 @@ OBJ := 	gdt.o \
 		print.o
 		
 OBJ += arch/i686/interrupts.o \
-	   arch/i686/start.o
+	   arch/i686/loader.o
 
 OBJ := $(START_OBJ) $(addprefix $(BUILD)/, $(OBJ)) $(END_OBJ)
 
