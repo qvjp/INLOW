@@ -222,3 +222,14 @@ void AddressSpace::unmap(vaddr_t virtualAddress)
 {
 		mapAt(virtualAddress, 0, 0);
 }
+
+// These two function are called from libk
+extern "C" void* __mapPages(size_t nPages)
+{
+	return (void*) kernelSpace->allocate(nPages);
+}
+
+extern "C" void __unmapPages(void* addr, size_t nPages)
+{
+	kernelSpace->free((vaddr_t) addr, nPages);
+}

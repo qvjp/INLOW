@@ -1,8 +1,17 @@
 include ./build-config/config.mk
-all: kernel iso
+all: install-headers libc install-libc kernel iso
 
 kernel:
 	$(MAKE) -C kernel
+
+libc:
+	$(MAKE) -C libc
+
+install-libc:
+	$(MAKE) -C libc install
+
+install-headers:
+	$(MAKE) -C libc install-headers
 
 iso: $(ISO)
 
@@ -28,4 +37,9 @@ clean:
 	rm -rf ./build/
 	rm -f $(ISO)
 
-.PHONY: all kernel iso qemu clean
+distclean:
+	rm -rf ./build/ ./sysroot/
+	rm -rf $(ISO)
+
+
+.PHONY: all kernel libc install-headers install-libc iso qemu clean distclean

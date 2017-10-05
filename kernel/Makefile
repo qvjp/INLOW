@@ -4,11 +4,11 @@ include ../build-config/config.mk
 
 BUILD = ../build/$(ARCH)/kernel
 
-ASPARAMETER += -Wa,--divide
+ASPARAMETER += -Wa,--divide -I include -I $(SYSROOT)/usr/include
 CPPPARAMETER ?= -O2 -g
-CPPPARAMETER += -std=gnu++14 -ffreestanding -fno-exceptions -fno-rtti -Wall -Wextra -I include
-LDPARAMETER ?= -T linker.ld -ffreestanding -nostdlib
-LIBS ?= -lgcc
+CPPPARAMETER += --sysroot=$(SYSROOT) -std=gnu++14 -ffreestanding -fno-exceptions -fno-rtti -Wall -Wextra -I include -I $(SYSROOT)/usr/include
+LDPARAMETER ?= --sysroot=$(SYSROOT) -T linker.ld -ffreestanding -nostdlib
+LIBS += -lk -lgcc
 
 CRTBEGIN_0 := $(shell $(CPP) $(CPPPARAMETER) -print-file-name=crtbegin.o)
 CRTEND_0 := $(shell $(CPP) $(CPPPARAMETER) -print-file-name=crtend.o)

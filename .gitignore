@@ -1,3 +1,4 @@
 build/
 *.iso
 .DS_Store
+sysroot/
