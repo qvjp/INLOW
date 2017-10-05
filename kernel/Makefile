@@ -4,10 +4,12 @@ include ../build-config/config.mk
 
 BUILD = ../build/$(ARCH)/kernel
 
-ASPARAMETER += -Wa,--divide -I include -I $(SYSROOT)/usr/include
-CPPPARAMETER ?= -O2 -g
-CPPPARAMETER += --sysroot=$(SYSROOT) -std=gnu++14 -ffreestanding -fno-exceptions -fno-rtti -Wall -Wextra -I include -I $(SYSROOT)/usr/include
-LDPARAMETER ?= --sysroot=$(SYSROOT) -T linker.ld -ffreestanding -nostdlib
+ASPARAMETER += -Wa,--divide
+CXXPARAMETER ?= -O2 -g
+CXXPARAMETER += --sysroot=$(SYSROOT) -std=gnu++14 -ffreestanding -fno-exceptions
+CXXPARAMETER += -fno-rtti -Wall -Wextra
+CPPPARAMETER += -I include -I $(SYSROOT)/usr/include
+LDPARAMETER += --sysroot=$(SYSROOT) -T linker.ld -ffreestanding -nostdlib
 LIBS += -lk -lgcc
 
 CRTBEGIN_0 := $(shell $(CPP) $(CPPPARAMETER) -print-file-name=crtbegin.o)
@@ -32,15 +34,15 @@ OBJ := $(START_OBJ) $(addprefix $(BUILD)/, $(OBJ)) $(END_OBJ)
 all: $(BUILD)/kernel
 
 $(BUILD)/kernel: $(OBJ)
-	$(CPP) $(LDPARAMETER) -o $(BUILD)/kernel.elf $^ $(LIBS)
+	$(CXX) $(LDPARAMETER) -o $(BUILD)/kernel.elf $^ $(LIBS)
 
 $(BUILD)/%.o: src/%.cpp
 	@mkdir -p $(dir $@)
-	$(CPP) $(CPPPARAMETER) -c -o $@ $^
+	$(CXX) $(CXXPARAMETER) $(CPPPARAMETER) -c -o $@ $^
 
 $(BUILD)/%.o: src/%.s
 	@mkdir -p $(dir $@)
-	$(CPP) $(ASPARAMETER) -c -o $@ $^
+	$(CXX) $(ASPARAMETER) -c -o $@ $^
 
 clean:
 	rm -rf $(BUILD)
