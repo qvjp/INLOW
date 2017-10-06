@@ -1,4 +1,7 @@
+#include <string.h>
+#include <inlow/kernel/elf.h>
 #include <inlow/kernel/print.h>
+#include <inlow/kernel/physicalmemory.h>
 #include <inlow/kernel/process.h>
 
 Process* Process::current;
@@ -21,6 +24,35 @@ void Process::initialize()
 	idleProcess->interruptContext = new InterruptContext();
 	current = idleProcess;
 	firstProcess = nullptr;
+}
+
+Process* Process::loadELF(vaddr_t elf)
+{
+	ELFHeader* header = (ELFHeader*)elf;
+	ProgramHeader* programHeader = (ProgramHeader*) (elf + header->e_phoff);
+
+	AddressSpace* addressSpace = kernelSpace->fork();
+	for (size_t i = 0; i < header->e_phnum; i++)
+	{
+		if (programHeader[i].p_type != PT_LOAD)
+				continue;
+		const void* src = (void*) (elf + programHeader[i].p_offset);
+		size_t nPages = ALIGNUP(programHeader[i].p_memsz, 0x1000) / 0x1000;
+		paddr_t destPhys[nPages + 1];
+		for (size_t j = 0; j < nPages; j++)
+		{
+			destPhys[j] = PhysicalMemory::popPageFrame();
+		}
+		destPhys[nPages] = 0;
+
+		void* dest = (void*) kernelSpace->mapRange(destPhys, PAGE_PRESENT | PAGE_WRITABLE);
+		memset(dest, 0 ,programHeader[i].p_memsz);
+		memcpy(dest, src, programHeader[i].p_filesz);
+		kernelSpace->unmapRange((vaddr_t) dest, nPages);
+
+		addressSpace->mapRangeAt(programHeader[i].p_paddr, destPhys, PAGE_PRESENT | PAGE_WRITABLE | PAGE_USER);
+	}
+	return startProcess((void*) header->e_entry, addressSpace);
 }
 
 InterruptContext* Process::schedule(InterruptContext* context)

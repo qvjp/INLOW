@@ -19,6 +19,7 @@ class Process
 
 	public:
 			static void initialize();
+			static Process* loadELF(vaddr_t elf);
 			static InterruptContext* schedule(InterruptContext* context);
 			static Process* startProcess(void* entry, AddressSpace* addressSpace);
 			static Process* current;
