@@ -19,6 +19,7 @@ START_OBJ := $(BUILD)/arch/i686/crti.o $(CRTBEGIN_0)
 END_OBJ := $(CRTEND_0) $(BUILD)/arch/i686/crtn.o
 
 OBJ := addressspace.o \
+		assert.o \
 		gdt.o \
 		idt.o \
 		interrupts.o \

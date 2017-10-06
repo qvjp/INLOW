@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <inlow/kernel/addressspace.h>
 #include <inlow/kernel/print.h>
 #include <inlow/kernel/physicalmemory.h>
@@ -57,6 +58,7 @@ void PhysicalMemory::initialize(multiboot_info* multiboot)
 
 void PhysicalMemory::pushPageFrame(paddr_t physicalAddress)
 {
+		assert(!(physicalAddress & 0xFFF));
 	if(unlikely(stackUnused == 0))
 	{
 		kernelSpace->mapAt((vaddr_t) stack - 0x1000 - stackUsed * 4, physicalAddress, PAGE_PRESENT | PAGE_WRITABLE);

@@ -1,3 +1,4 @@
+#include <assert.h>
 #include "malloc.h"
 
 static Chunk emptyBigChunk[2] = {
@@ -8,6 +9,7 @@ Chunk* firstBigChunk = emptyBigChunk;
 
 Chunk* __allocateBigChunk(Chunk* lastBigChunk, size_t size)
 {
+		assert(lastBigChunk->magic == MAGIC_BIG_CHUNK);
 	size += 2 * sizeof(Chunk);
 	size = alignUp(size, PAGESIZE);
 
@@ -40,6 +42,7 @@ Chunk* __allocateBigChunk(Chunk* lastBigChunk, size_t size)
 
 void __splitChunk(Chunk* chunk, size_t size)
 {
+		assert(chunk->magic == MAGIC_FREE_CHUNK);
 	Chunk* newChunk = (Chunk*) ((void*) chunk + sizeof(Chunk) + size);
 	newChunk->magic = MAGIC_FREE_CHUNK;
 	newChunk->size = chunk->size - sizeof(Chunk) - size;
@@ -53,6 +56,8 @@ void __splitChunk(Chunk* chunk, size_t size)
 
 Chunk* __unifyChunks(Chunk* first, Chunk* second)
 {
+		assert(first->magic == MAGIC_FREE_CHUNK);
+		assert(first->magic == MAGIC_FREE_CHUNK);
 	first->next = second->next;
 	first->size += sizeof(Chunk) + second->size;
 	second->next->prev = first;
