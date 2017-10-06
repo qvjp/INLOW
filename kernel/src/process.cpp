@@ -7,6 +7,7 @@ static Process* idleProcess;
 
 Process::Process()
 {
+	addressSpace = kernelSpace;
 	interruptContext = nullptr;
 	next = nullptr;
 	stack = nullptr;
@@ -39,6 +40,7 @@ InterruptContext* Process::schedule(InterruptContext* context)
 			currentProcess = idleProcess;
 		}
 	}
+	currentProcess->addressSpace->activate();
 	return currentProcess->interruptContext;
 }
 
@@ -61,6 +63,8 @@ Process* Process::startProcess(void* entry)
 	process->interruptContext->eip = (uint32_t)entry;
 	process->interruptContext->cs = 0x8;
 	process->interruptContext->eflags = 0x200;//Interrupt enable
+
+	process->addressSpace = kernelSpace->fork();
 
 	process->next = firstProcess;
 	firstProcess = process;

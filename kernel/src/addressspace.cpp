@@ -11,10 +11,12 @@ extern "C"
 {
 		extern symbol_t bootstrapBegin;
 		extern symbol_t bootstrapEnd;
+		extern symbol_t kernelPageDirectory;
 }
 
 AddressSpace AddressSpace::_kernelSpace;
 AddressSpace* kernelSpace;
+static AddressSpace* firstAddressSpace = nullptr;
 
 static inline vaddr_t indexToAddress(size_t pdIndex, size_t ptIndex)
 {
@@ -32,12 +34,14 @@ static inline void addressToIndex(vaddr_t virtualAddress, size_t& pdIndex, size_
 
 AddressSpace::AddressSpace()
 {
-
+	pageDir = 0;
+	next = nullptr;
 }
 
 void AddressSpace::initialize()
 {
 		kernelSpace = &_kernelSpace;
+		kernelSpace->pageDir = (paddr_t) &kernelPageDirectory;
 
 		vaddr_t p = (vaddr_t) &bootstrapBegin;
 
@@ -46,6 +50,12 @@ void AddressSpace::initialize()
 				kernelSpace->unmap(p);
 				p += 0x1000;
 		}
+		kernelSpace->unmap(RECURSIVE_MAPPING);
+}
+
+void AddressSpace::activate()
+{
+	asm volatile ("mov %0, %%cr3" :: "r"(pageDir));
 }
 
 vaddr_t AddressSpace::allocate(size_t nPages)
@@ -60,6 +70,25 @@ vaddr_t AddressSpace::allocate(size_t nPages)
 		}
 		physicalAddresses[nPages] = 0;
 		return mapRange(physicalAddresses, PAGE_PRESENT | PAGE_WRITABLE);
+}
+
+AddressSpace* AddressSpace::fork()
+{
+	AddressSpace* result = new AddressSpace();
+	result->pageDir = PhysicalMemory::popPageFrame();
+
+	vaddr_t currentPageDir = kernelSpace->map(pageDir, PAGE_PRESENT);
+	vaddr_t newPageDir = kernelSpace->map(result->pageDir, PAGE_PRESENT | PAGE_WRITABLE);
+
+	memcpy((void*) newPageDir, (const void*) currentPageDir, 0x1000);
+	
+	kernelSpace->unmap(currentPageDir);
+	kernelSpace->unmap(newPageDir);
+
+	result->next = firstAddressSpace;
+	firstAddressSpace = result;
+
+	return result;
 }
 
 void AddressSpace::free(vaddr_t virtualAddress, size_t nPages)
@@ -79,38 +108,105 @@ paddr_t AddressSpace::getPhysicalAddress(vaddr_t virtualAddress)
 		size_t ptIndex;
 		addressToIndex(virtualAddress, pdIndex, ptIndex);
 
+		uintptr_t* pageDirectory;
+		uintptr_t* pageTable = nullptr;
+		paddr_t result = 0;
+
 		if(this == kernelSpace)
 		{
-				uintptr_t* pageTable = (uintptr_t*)(RECURSIVE_MAPPING + 0x3FF000 + 4 * pdIndex);
-				if (*pageTable)
-				{
-						uintptr_t* pageEntry = (uintptr_t*)(RECURSIVE_MAPPING + 0x1000 * pdIndex + 4 * ptIndex);
-						return *pageEntry & ~0xFFF;
-				}
-				else
-				{
-						Print::printf("Error: Page Table does not exist.\n");
-						return 0;
-				}
+				pageDirectory = (uintptr_t*) (RECURSIVE_MAPPING + 0x3FF000);
+				pageTable = (uintptr_t*) (RECURSIVE_MAPPING + 0x1000 * pdIndex);
 		}
 		else
 		{
-				//TODO: Implement this for other address spaces.
-				return 0;	
+			pageDirectory = (uintptr_t*) kernelSpace->map(pageDir, PAGE_PRESENT);
 		}
+		if (pageDirectory[pdIndex])
+		{
+			if (this != kernelSpace)
+			{
+				pageTable = (uintptr_t*) kernelSpace->map(pageDirectory[pdIndex] & ~0xFFF, PAGE_PRESENT);
+			}
+			result = pageTable[ptIndex] & ~0xFFF;
+		}
+		if (this != kernelSpace)
+		{
+			if (pageTable)
+					kernelSpace->unmap((vaddr_t) pageTable);
+			kernelSpace->unmap((vaddr_t) pageDirectory);
+		}
+
+		return result;
+		}
+bool AddressSpace::isFree(vaddr_t virtualAddress)
+{
+	size_t pdIndex;
+	size_t ptIndex;
+	addressToIndex(virtualAddress, pdIndex, ptIndex);
+	return isFree(pdIndex, ptIndex);
 }
+
+bool AddressSpace::isFree(size_t pdIndex, size_t ptIndex)
+{
+	if (pdIndex == 0 && ptIndex == 0)
+			return false;
+	uintptr_t* pageDirectory;
+	uintptr_t* pageTable = nullptr;
+
+	bool result;
+
+	if (this == kernelSpace)
+	{
+		pageDirectory = (uintptr_t*) (RECURSIVE_MAPPING + 0x3FF000);
+		pageTable = (uintptr_t*) (RECURSIVE_MAPPING + 0x1000 * pdIndex);
+	}
+	else
+	{
+		pageDirectory = (uintptr_t*) kernelSpace->map(pageDir, PAGE_PRESENT);
+	}
+	if (!pageDirectory[pdIndex])
+	{
+		result = true;
+	}
+	else
+	{
+		if (this != kernelSpace)
+		{
+			pageTable = (uintptr_t*)
+					kernelSpace->map(pageDirectory[pdIndex], PAGE_PRESENT);
+		}
+		result = !pageTable[ptIndex];
+	}
+
+	if (this != kernelSpace)
+	{
+		if (pageTable)
+				kernelSpace->unmap((vaddr_t) pageTable);
+		kernelSpace->unmap((vaddr_t) pageDirectory);
+	}
+	return result;
+}
+
 vaddr_t AddressSpace::map(paddr_t physicalAddress, int flags)
 {
-		// Find free page from the higher half amd map it
-		for (size_t pdIndex = 0x300; pdIndex < 0x400; pdIndex++)
+		size_t begin;
+		size_t end;
+
+		if (this == kernelSpace)
 		{
-				uintptr_t* pageTable = (uintptr_t*)(RECURSIVE_MAPPING + 0x3FF000 + 4 * pdIndex);
-				if (!*pageTable)
-						continue;
+			begin = 0x300;
+			end = 0x400;
+		}
+		else
+		{
+			begin = 0;
+			end = 0x300;
+		}
+		for (size_t pdIndex = begin; pdIndex < end; pdIndex++)
+		{
 				for (size_t ptIndex = 0; ptIndex < 0x400; ptIndex++)
 				{
-						uintptr_t* pageEntry = (uintptr_t*)(RECURSIVE_MAPPING + 0x1000 * pdIndex + 4 * ptIndex);
-						if (!*pageEntry)
+						if (isFree(pdIndex, ptIndex))
 						{
 								return mapAt(pdIndex, ptIndex, physicalAddress, flags);
 						}
@@ -128,25 +224,50 @@ vaddr_t AddressSpace::mapAt(vaddr_t virtualAddress, paddr_t physicalAddress, int
 vaddr_t AddressSpace::mapAt(size_t pdIndex, size_t ptIndex, paddr_t physicalAddress, int flags)
 {
 		assert(!(flags & ~0xFFF));
+		uintptr_t* pageDirectory;
+		uintptr_t* pageTable = nullptr;
+
 		if(this == kernelSpace)
 		{
-				uintptr_t* pageTable = (uintptr_t*)(RECURSIVE_MAPPING + 0x3FF000 + 4 * pdIndex);
-				uintptr_t* pageEntry = (uintptr_t*)(RECURSIVE_MAPPING + 0x1000 * pdIndex + 4 * ptIndex);
-
-				if (!*pageTable)
-						//Allocate a new page table and map it in the page directory
-				{
-						paddr_t pageTablePhys = PhysicalMemory::popPageFrame();
-						uintptr_t* pageTableVirt = (uintptr_t*) mapAt(0x3FF, pdIndex, pageTablePhys, PAGE_PRESENT | PAGE_WRITABLE);
-						memset(pageTableVirt, 0, 0x1000);
-				}
-				*pageEntry = physicalAddress | flags;
-
+				pageDirectory = (uintptr_t*) (RECURSIVE_MAPPING + 0x3FF000);
+				pageTable = (uintptr_t*) (RECURSIVE_MAPPING + 0x1000 * pdIndex);
 		}
 		else
 		{
-				//TODO: Implement this for other address spaces.
-				return 0;
+			pageDirectory = (uintptr_t*) kernelSpace->map(pageDir, PAGE_PRESENT | PAGE_WRITABLE);
+		}
+		if (!pageDirectory[pdIndex])
+		{
+			paddr_t pageTablePhys = PhysicalMemory::popPageFrame();
+			pageDirectory[pdIndex] = pageTablePhys | PAGE_PRESENT | PAGE_WRITABLE;
+			if (this != kernelSpace)
+			{
+				pageTable = (uintptr_t*) kernelSpace->map(pageTablePhys, PAGE_PRESENT | PAGE_WRITABLE);
+			}
+			memset(pageTable, 0, 0x1000);
+
+			if(this == kernelSpace)
+			{
+				AddressSpace* addressSpace = firstAddressSpace;
+				while (addressSpace)
+				{
+					uintptr_t* pageDir = (uintptr_t*) map(addressSpace->pageDir, PAGE_PRESENT | PAGE_WRITABLE);
+					pageDir[pdIndex] = pageTablePhys | PAGE_PRESENT | PAGE_WRITABLE;
+					unmap((vaddr_t) pageDir);
+					addressSpace++;
+				}
+			}
+		}
+		else if (this != kernelSpace)
+		{
+			pageTable = (uintptr_t*) kernelSpace->map(pageDirectory[pdIndex],PAGE_PRESENT | PAGE_WRITABLE);	
+		}
+		pageTable[ptIndex] = physicalAddress | flags;
+
+		if (this != kernelSpace)
+		{
+			kernelSpace->unmap((vaddr_t) pageTable);
+			kernelSpace->unmap((vaddr_t) pageDirectory);
 		}
 		vaddr_t virtualAddress = indexToAddress(pdIndex, ptIndex);
 
@@ -154,6 +275,7 @@ vaddr_t AddressSpace::mapAt(size_t pdIndex, size_t ptIndex, paddr_t physicalAddr
 		asm volatile ("invlpg (%0)" :: "r"(virtualAddress));
 		return virtualAddress;
 }
+
 vaddr_t AddressSpace::mapRange(paddr_t* physicalAddresses, int flags)
 {
 		paddr_t* phys = physicalAddresses;
@@ -164,30 +286,34 @@ vaddr_t AddressSpace::mapRange(paddr_t* physicalAddresses, int flags)
 				nPages++;
 		}
 
-		for (size_t pdIndex = 0x300; pdIndex < 0x400; pdIndex++)
+		size_t begin;
+		size_t end;
+
+		if (this == kernelSpace)
+		{
+			begin = 0x300;
+			end = 0x400;
+		}
+		else
+		{
+			begin = 0;
+			end = 0x300;
+		}
+
+		for (size_t pdIndex = begin; pdIndex < end; pdIndex++)
 		{
 				for (size_t ptIndex = 0; ptIndex < 0x400; ptIndex++)
 				{
+						if (pdIndex == 0 && ptIndex == 0)
+								continue;
 						size_t pd = pdIndex;
 						size_t pt = ptIndex;
 						size_t foundPages = 0;
 
 						while (foundPages <= nPages)
 						{
-								uintptr_t* pageTable = (uintptr_t*)(RECURSIVE_MAPPING + 0x3FF000 + 4 * pd);
-								uintptr_t* pageEntry = (uintptr_t*)(RECURSIVE_MAPPING + 0x1000 * pd + 4 * pt);
-
-								if (!*pageTable)
-								{
-										foundPages += 1024;
-										pd++;
-										pt = 0;
-										continue;
-								}
-
-								if(*pageEntry)
+								if (!isFree(pd, pt))
 										break;
-
 								pt++;
 								foundPages++;
 
