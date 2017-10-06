@@ -4,8 +4,9 @@
 #include <stddef.h>
 #include <inlow/kernel/kernel.h>
 
-#define PAGE_PRESENT 0x1
-#define PAGE_WRITABLE 0x2
+#define PAGE_PRESENT (1 << 0)
+#define PAGE_WRITABLE (1 << 1)
+#define PAGE_USER (1 << 2)
 
 class AddressSpace
 {

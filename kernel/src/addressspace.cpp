@@ -69,7 +69,12 @@ vaddr_t AddressSpace::allocate(size_t nPages)
 						return 0;
 		}
 		physicalAddresses[nPages] = 0;
-		return mapRange(physicalAddresses, PAGE_PRESENT | PAGE_WRITABLE);
+
+		int flags = PAGE_PRESENT | PAGE_WRITABLE;
+		if (this != kernelSpace)
+				flags |= PAGE_USER;
+
+		return mapRange(physicalAddresses, flags);
 }
 
 AddressSpace* AddressSpace::fork()
@@ -239,7 +244,11 @@ vaddr_t AddressSpace::mapAt(size_t pdIndex, size_t ptIndex, paddr_t physicalAddr
 		if (!pageDirectory[pdIndex])
 		{
 			paddr_t pageTablePhys = PhysicalMemory::popPageFrame();
-			pageDirectory[pdIndex] = pageTablePhys | PAGE_PRESENT | PAGE_WRITABLE;
+			int pdFlags = PAGE_PRESENT | PAGE_WRITABLE;
+			if (this != kernelSpace)
+					pdFlags |= PAGE_USER;
+
+			pageDirectory[pdIndex] = pageTablePhys | pdFlags;
 			if (this != kernelSpace)
 			{
 				pageTable = (uintptr_t*) kernelSpace->map(pageTablePhys, PAGE_PRESENT | PAGE_WRITABLE);
@@ -254,7 +263,7 @@ vaddr_t AddressSpace::mapAt(size_t pdIndex, size_t ptIndex, paddr_t physicalAddr
 					uintptr_t* pageDir = (uintptr_t*) map(addressSpace->pageDir, PAGE_PRESENT | PAGE_WRITABLE);
 					pageDir[pdIndex] = pageTablePhys | PAGE_PRESENT | PAGE_WRITABLE;
 					unmap((vaddr_t) pageDir);
-					addressSpace++;
+					addressSpace = addressSpace->next;
 				}
 			}
 		}

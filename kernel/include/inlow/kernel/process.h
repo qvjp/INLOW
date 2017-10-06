@@ -13,12 +13,14 @@ class Process
 			InterruptContext* interruptContext;
 			Process* next;
 			void* stack;
+			void* kernelStack;
 
 	public:
 			static void initialize();
 			static InterruptContext* schedule(InterruptContext* context);
-			static Process* startProcess(void* entry);
+			static Process* startProcess(void* entry, AddressSpace* addressSpace);
 };
 
+void setKernelStack(void* stack);
 
 #endif

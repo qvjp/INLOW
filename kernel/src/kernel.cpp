@@ -1,3 +1,4 @@
+#include <string.h>
 #include <inlow/kernel/addressspace.h>
 #include <inlow/kernel/print.h>
 #include <inlow/kernel/physicalmemory.h>
@@ -5,13 +6,17 @@
 
 static void processA()
 {
-	while(true)
-			Print::printf("A");
+	while(true);
 }
-static void processB()
+static Process* startProcesses(void* function)
 {
-	while(true)
-			Print::printf("B");
+	AddressSpace* addressSpace = kernelSpace->fork();
+	paddr_t phys = PhysicalMemory::popPageFrame();
+	void* processCode = (void*) addressSpace->map(phys, PAGE_PRESENT | PAGE_USER);
+	vaddr_t processMapped = kernelSpace->map(phys, PAGE_PRESENT | PAGE_WRITABLE);
+	memcpy((void*) processMapped, function, 0x1000);
+	kernelSpace->unmap(processMapped);
+	return Process::startProcess(processCode, addressSpace);
 }
 
 extern "C" void kernel_main(uint32_t, paddr_t multibootAddress)
@@ -29,8 +34,8 @@ extern "C" void kernel_main(uint32_t, paddr_t multibootAddress)
 		kernelSpace->unmap((vaddr_t) multiboot);
 
 		Process::initialize();
-		Process::startProcess((void*) processA);
-		Process::startProcess((void*) processB);
+		startProcesses((void*) processA);
+
 		Print::printf("Processes initialized\n");
 
 
