@@ -1,6 +1,7 @@
 #include <inlow/kernel/interrupts.h>
 #include <inlow/kernel/print.h>
 #include <inlow/kernel/port.h>
+#include <inlow/kernel/process.h>
 
 #define PIC1_COMMAND 0x20
 #define PIC1_DATA 0x21
@@ -28,6 +29,7 @@ void Interrupts::enable()
 
 extern "C" InterruptContext* handleInterrupt(InterruptContext* context)
 {
+	InterruptContext* newContext = context;
 	if (context->interrupt <= 31) //CPU Exception
 	{
 		Print::printf("Exception %u occurred!\n",context->interrupt);
@@ -43,7 +45,11 @@ extern "C" InterruptContext* handleInterrupt(InterruptContext* context)
 	}
 	else if(context->interrupt <= 47) // IRQ
 	{
-		Print::printf("IRQ %u occurred!\n", context->interrupt - 32);
+		//Print::printf("IRQ %u occurred!\n", context->interrupt - 32);
+		if(context->interrupt == 32)
+		{
+			newContext = Process::schedule(context);
+		}
 		
 		// Send End of Interrupt
 		if (context->interrupt >= 40)
@@ -56,5 +62,5 @@ extern "C" InterruptContext* handleInterrupt(InterruptContext* context)
 	{
 		Print::printf("Unknow interrupt %u!\n", context->interrupt);
 	}
-	return context;
+	return newContext;
 }

@@ -1,7 +1,18 @@
 #include <inlow/kernel/addressspace.h>
-#include <inlow/kernel/interrupts.h>
 #include <inlow/kernel/print.h>
 #include <inlow/kernel/physicalmemory.h>
+#include <inlow/kernel/process.h>
+
+static void processA()
+{
+	while(true)
+			Print::printf("A");
+}
+static void processB()
+{
+	while(true)
+			Print::printf("B");
+}
 
 extern "C" void kernel_main(uint32_t, paddr_t multibootAddress)
 {
@@ -13,12 +24,23 @@ extern "C" void kernel_main(uint32_t, paddr_t multibootAddress)
 						multibootAddress, PAGE_PRESENT | PAGE_WRITABLE);
 
 		PhysicalMemory::initialize(multiboot);
+		Print::printf("Physical Memory initialized\n");
+
 		kernelSpace->unmap((vaddr_t) multiboot);
+
+		Process::initialize();
+		Process::startProcess((void*) processA);
+		Process::startProcess((void*) processB);
+		Print::printf("Processes initialized\n");
+
 
 		Interrupts::initPic();
 		Interrupts::enable();
 		Print::printf("Interrupts enable!\n");
 
-		while (true);
+		while (true)
+		{
+			asm volatile ("hlt");
+		}
 
 }
