@@ -63,6 +63,10 @@ extern "C" InterruptContext* handleInterrupt(InterruptContext* context)
 		}	
 		outb(PIC1_COMMAND, PIC_EOI);
 	}
+	else if (context->interrupt == 0x31)
+	{
+		newContext = Process::schedule(context);
+	}
 	else
 	{
 		Print::printf("Unknow interrupt %u!\n", context->interrupt);

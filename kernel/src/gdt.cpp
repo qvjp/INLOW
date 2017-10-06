@@ -1,5 +1,4 @@
 #include <stdint.h>
-#include <inlow/kernel/kernel.h>
 #include <inlow/kernel/process.h>
 
 struct gdt_entry
@@ -121,7 +120,7 @@ extern "C"
 		};
 		uint16_t gdt_size = sizeof(gdt) - 1;
 }
-void setKernelStack(void* stack)
+void setKernelStack(uintptr_t stack)
 {
-	tss.esp0 = (uint32_t) stack;
+	tss.esp0 = stack;
 }

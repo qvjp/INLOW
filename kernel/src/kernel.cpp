@@ -6,7 +6,13 @@
 
 static void processA()
 {
-	while(true);
+		asm volatile ("int $0x30" :: "a"(0), "b"(0));
+		__builtin_unreachable();
+}
+static void processB()
+{
+		asm volatile ("int $0x30" :: "a"(0), "b"(42));
+		__builtin_unreachable();
 }
 static Process* startProcesses(void* function)
 {
@@ -35,6 +41,7 @@ extern "C" void kernel_main(uint32_t, paddr_t multibootAddress)
 
 		Process::initialize();
 		startProcesses((void*) processA);
+		startProcesses((void*) processB);
 
 		Print::printf("Processes initialized\n");
 

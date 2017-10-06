@@ -42,6 +42,9 @@ extern "C"
 		extern void isr_45(void);
 		extern void isr_46(void);
 		extern void isr_47(void);
+		
+		extern void syscallHandler(void);
+		extern void isr_49(void);
 }
 
 struct idt_entry
@@ -63,7 +66,8 @@ struct idt_entry
 }
 
 #define IDT_INTERRUPT_GATE 0xE
-#define IDT_RING0 0
+#define IDT_RING0 (0 << 5)
+#define IDT_RING3 (3 << 5)
 #define IDT_PRESENT (1 << 7)
 
 extern "C"
@@ -119,6 +123,9 @@ extern "C"
 				IDT_ENTRY(isr_45, 0x8, IDT_INTERRUPT_GATE | IDT_RING0 | IDT_PRESENT),
 				IDT_ENTRY(isr_46, 0x8, IDT_INTERRUPT_GATE | IDT_RING0 | IDT_PRESENT),
 				IDT_ENTRY(isr_47, 0x8, IDT_INTERRUPT_GATE | IDT_RING0 | IDT_PRESENT),
+
+				IDT_ENTRY(syscallHandler, 0x8, IDT_INTERRUPT_GATE | IDT_RING3 | IDT_PRESENT),
+				IDT_ENTRY(isr_49, 0x8, IDT_INTERRUPT_GATE | IDT_RING0 | IDT_PRESENT),
 		};
 
 		uint16_t idt_size = sizeof(idt) - 1;

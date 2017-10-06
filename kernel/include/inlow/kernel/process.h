@@ -8,9 +8,11 @@ class Process
 {
 	public:
 			Process();
+			void exit(int status);
 	private:
 			AddressSpace* addressSpace;
 			InterruptContext* interruptContext;
+			Process* prev;
 			Process* next;
 			void* stack;
 			void* kernelStack;
@@ -19,8 +21,9 @@ class Process
 			static void initialize();
 			static InterruptContext* schedule(InterruptContext* context);
 			static Process* startProcess(void* entry, AddressSpace* addressSpace);
+			static Process* current;
 };
 
-void setKernelStack(void* stack);
+void setKernelStack(uintptr_t stack);
 
 #endif

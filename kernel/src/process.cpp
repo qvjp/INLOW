@@ -1,7 +1,7 @@
-#include <inlow/kernel/addressspace.h>
+#include <inlow/kernel/print.h>
 #include <inlow/kernel/process.h>
 
-static Process* currentProcess;
+Process* Process::current;
 static Process* firstProcess;
 static Process* idleProcess;
 
@@ -9,6 +9,7 @@ Process::Process()
 {
 	addressSpace = kernelSpace;
 	interruptContext = nullptr;
+	prev = nullptr;
 	next = nullptr;
 	stack = nullptr;
 	kernelStack = nullptr;
@@ -18,33 +19,33 @@ void Process::initialize()
 {
 	idleProcess = new Process();
 	idleProcess->interruptContext = new InterruptContext();
-	currentProcess = idleProcess;
+	current = idleProcess;
 	firstProcess = nullptr;
 }
 
 InterruptContext* Process::schedule(InterruptContext* context)
 {
-	currentProcess->interruptContext = context;
+	current->interruptContext = context;
 
-	if (currentProcess->next)
+	if (current->next)
 	{
-		currentProcess = currentProcess->next;
+		current = current->next;
 	}
 	else
 	{
 		if (firstProcess)
 		{
-			currentProcess = firstProcess;
+			current = firstProcess;
 		}
 		else
 		{
-			currentProcess = idleProcess;
+			current = idleProcess;
 		}
 	}
-	setKernelStack(currentProcess->kernelStack);
+	setKernelStack((uintptr_t) current->kernelStack + 0x1000);
 
-	currentProcess->addressSpace->activate();
-	return currentProcess->interruptContext;
+	current->addressSpace->activate();
+	return current->interruptContext;
 }
 
 Process* Process::startProcess(void* entry, AddressSpace* addressSpace)
@@ -73,7 +74,28 @@ Process* Process::startProcess(void* entry, AddressSpace* addressSpace)
 	process->addressSpace = addressSpace;
 
 	process->next = firstProcess;
+	if (process->next)
+	{
+		process->next->prev = process;
+	}
 	firstProcess = process;
 
 	return process;
+}
+
+void Process::exit(int status)
+{
+	if (next)
+	{
+		next->prev = prev;
+	}
+	if (prev)
+	{
+		prev->next = next;
+	}
+	if (this == firstProcess)
+	{
+		firstProcess = next;
+	}
+	Print::printf("Process exited with status %u\n", status);
 }

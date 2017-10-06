@@ -26,10 +26,12 @@ OBJ := addressspace.o \
 		kernel.o \
 		print.o \
 		physicalmemory.o \
-		process.o
+		process.o \
+		syscall.o
 		
 OBJ += arch/i686/interrupts.o \
-	   arch/i686/loader.o
+	   arch/i686/loader.o \
+	   arch/i686/syscall.o
 
 OBJ := $(START_OBJ) $(addprefix $(BUILD)/, $(OBJ)) $(END_OBJ)
 
