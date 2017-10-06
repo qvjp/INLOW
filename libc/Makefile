@@ -15,7 +15,11 @@ LIBK_OBJ := \
 		cxx/delete \
 		stdlib/free \
 		stdlib/malloc \
-		stdlib/malloc-util
+		stdlib/malloc-util \
+		string/memcmp \
+		string/memcpy \
+		string/memmove \
+		string/memset \
 
 LIBK_OBJ := $(addprefix $(BUILD)/, $(addsuffix .libk.o, $(LIBK_OBJ)))
 

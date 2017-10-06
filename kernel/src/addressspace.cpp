@@ -1,3 +1,4 @@
+#include <string.h>
 #include <inlow/kernel/addressspace.h>
 #include <inlow/kernel/kernel.h>
 #include <inlow/kernel/print.h>
@@ -132,10 +133,7 @@ vaddr_t AddressSpace::mapAt(size_t pdIndex, size_t ptIndex, paddr_t physicalAddr
 				{
 						paddr_t pageTablePhys = PhysicalMemory::popPageFrame();
 						uintptr_t* pageTableVirt = (uintptr_t*) mapAt(0x3FF, pdIndex, pageTablePhys, PAGE_PRESENT | PAGE_WRITABLE);
-						for (size_t i = 0; i < 1024; i++)
-						{
-								pageTableVirt[i]  = 0;
-						}
+						memset(pageTableVirt, 0, 0x1000);
 				}
 				*pageEntry = physicalAddress | flags;
 

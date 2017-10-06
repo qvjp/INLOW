@@ -42,7 +42,7 @@ $(BUILD)/%.o: src/%.cpp
 
 $(BUILD)/%.o: src/%.s
 	@mkdir -p $(dir $@)
-	$(CXX) $(ASPARAMETER) -c -o $@ $^
+	$(CXX) $(ASPARAMETER) $(CPPPARAMETER) -c -o $@ $^
 
 clean:
 	rm -rf $(BUILD)
