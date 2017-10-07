@@ -12,11 +12,13 @@ CPPPARAMETER += -I include -I $(SYSROOT)/usr/include
 LDPARAMETER += --sysroot=$(SYSROOT) -T linker.ld -ffreestanding -nostdlib
 LIBS += -lk -lgcc
 
+CRTI_0 := $(shell $(CXX) $(CXXPARAMETER) -print-file-name=crti.o)
 CRTBEGIN_0 := $(shell $(CPP) $(CPPPARAMETER) -print-file-name=crtbegin.o)
 CRTEND_0 := $(shell $(CPP) $(CPPPARAMETER) -print-file-name=crtend.o)
+CRTN_0 := $(shell $(CXX) $(CXXPARAMETER) -print-file-name=crtn.o)
 
-START_OBJ := $(BUILD)/arch/i686/crti.o $(CRTBEGIN_0)
-END_OBJ := $(CRTEND_0) $(BUILD)/arch/i686/crtn.o
+START_OBJ := $(CRTI_0) $(CRTBEGIN_0)
+END_OBJ := $(CRTEND_0) $(CRTN_0) 
 
 OBJ := addressspace.o \
 		assert.o \
