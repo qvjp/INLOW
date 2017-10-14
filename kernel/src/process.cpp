@@ -36,8 +36,11 @@ Process* Process::loadELF(vaddr_t elf)
 	{
 		if (programHeader[i].p_type != PT_LOAD)
 				continue;
+		vaddr_t loadAddressAligned = programHeader[i].p_paddr & ~0xFFF;
+		ptrdiff_t offset = programHeader[i].p_paddr - loadAddressAligned;
+
 		const void* src = (void*) (elf + programHeader[i].p_offset);
-		size_t nPages = ALIGNUP(programHeader[i].p_memsz, 0x1000) / 0x1000;
+		size_t nPages = ALIGNUP(programHeader[i].p_memsz + offset, 0x1000) / 0x1000;
 		paddr_t destPhys[nPages + 1];
 		for (size_t j = 0; j < nPages; j++)
 		{
@@ -45,12 +48,12 @@ Process* Process::loadELF(vaddr_t elf)
 		}
 		destPhys[nPages] = 0;
 
-		void* dest = (void*) kernelSpace->mapRange(destPhys, PAGE_PRESENT | PAGE_WRITABLE);
-		memset(dest, 0 ,programHeader[i].p_memsz);
-		memcpy(dest, src, programHeader[i].p_filesz);
-		kernelSpace->unmapRange((vaddr_t) dest, nPages);
+		vaddr_t dest = kernelSpace->mapRange(destPhys, PAGE_PRESENT | PAGE_WRITABLE);
+		memset((void*) (dest + offset), 0 ,programHeader[i].p_memsz);
+		memcpy((void*) (dest + offset), src, programHeader[i].p_filesz);
+		kernelSpace->unmapRange(dest, nPages);
 
-		addressSpace->mapRangeAt(programHeader[i].p_paddr, destPhys, PAGE_PRESENT | PAGE_WRITABLE | PAGE_USER);
+		addressSpace->mapRangeAt(loadAddressAligned, destPhys, PAGE_PRESENT | PAGE_WRITABLE | PAGE_USER);
 	}
 	return startProcess((void*) header->e_entry, addressSpace);
 }

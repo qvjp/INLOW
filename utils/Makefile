@@ -4,16 +4,18 @@ REPO_ROOT = ..
 include $(REPO_ROOT)/build-config/config.mk
 
 BUILD = $(BUILD_DIR)/utils
-LDFLAGS += --sysroot=$(SYSROOT) -nostdlib
+
+CFLAGS ?= -O2 -g
+CFLAGS += -Wall -Wextra
 
 PROGRAMS = \
 		   test
 
 all: $(addprefix $(BUILD)/, $(PROGRAMS))
 	
-$(BUILD)/%.o: %.s
+$(BUILD)/%: %.c
 	@mkdir -p $(dir $@)
-	$(CC) $(ASFLAGS) -c -o $@ $^
+	$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ $^
 
 clean:
 	rm -rf $(BUILD)
