@@ -28,6 +28,7 @@ OBJ := addressspace.o \
 		idt.o \
 		interrupts.o \
 		kernel.o \
+		keyboard.o \
 		print.o \
 		physicalmemory.o \
 		process.o \

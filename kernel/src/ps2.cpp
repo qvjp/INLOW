@@ -3,6 +3,7 @@
 #include <inlow/kernel/port.h>
 #include <inlow/kernel/ps2.h>
 #include <inlow/kernel/ps2keyboard.h>
+#include <inlow/kernel/terminal.h>
 
 #define PS2_DATA_PORT 0x60
 #define PS2_STATUS_PORT 0x64
@@ -113,7 +114,9 @@ void PS2::initialize()
 						id = inb(PS2_DATA_PORT);
 						if (id == 0x41 || id == 0xC1 || id == 0x83)
 						{
-								ps2Device1 = new PS2Keyboard();
+								PS2Keyboard* keyboard = new PS2Keyboard();
+								keyboard->listener = &terminal;
+								ps2Device1 = keyboard;
 								Interrupts::irqHandlers[1] = irqHandler;
 						}
 				}
