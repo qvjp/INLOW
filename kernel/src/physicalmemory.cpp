@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stdio.h>
 #include <inlow/kernel/addressspace.h>
 #include <inlow/kernel/print.h>
 #include <inlow/kernel/physicalmemory.h>
@@ -38,7 +39,7 @@ void PhysicalMemory::initialize(multiboot_info* multiboot)
 	{
 		multiboot_mmap_entry* mmapEntry = (multiboot_mmap_entry*) mmap;
 
-		if (mmapEntry->type == MULTIBOOT_MEMORY_AVAILABLE)
+		if (mmapEntry->type == MULTIBOOT_MEMORY_AVAILABLE && mmapEntry->addr + mmapEntry->len <= UINTPTR_MAX)
 		{
 			paddr_t addr = (paddr_t) mmapEntry->addr;
 			for (uint64_t i = 0; i < mmapEntry->len; i += 0x1000)
