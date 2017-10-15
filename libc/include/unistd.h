@@ -16,6 +16,7 @@ extern "C"
 {
 #endif
 		__noreturn void _exit(int);
+		ssize_t read(int, void*, size_t);
 		ssize_t write(int, const void*, size_t);
 		pid_t fork(void);
 		int execv(const char*, char* const[]);
