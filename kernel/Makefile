@@ -29,7 +29,9 @@ OBJ := addressspace.o \
 		print.o \
 		physicalmemory.o \
 		process.o \
-		syscall.o
+		syscall.o \
+		terminal.o \
+		vnode.o
 		
 OBJ += arch/i686/interrupts.o \
 	   arch/i686/loader.o \

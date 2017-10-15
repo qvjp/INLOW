@@ -1,10 +1,8 @@
 #include <stdarg.h>
 #include <stddef.h>
 #include <inlow/kernel/print.h>
+#include <inlow/kernel/terminal.h>
 
-static char* video = (char*) 0xC0000000;
-static int cursorPostX = 0;
-static int cursorPostY = 0;
 
 static void printChar(char c);
 static void printString(const char* s);
@@ -63,29 +61,7 @@ void Print::printf(const char* format, ...)
 
 static void printChar(char c)
 {
-	if (c == '\n' || cursorPostX > 79)
-	{
-		cursorPostX = 0;
-		cursorPostY++;
-		if(cursorPostY > 24)
-		{
-			for(size_t i = 0; i < 2 * 24 * 80; i++)
-			{
-				video[i] = video[i +2 * 80];
-			}
-			for (size_t i = 2 * 24 * 80; i < 2 * 25 * 80; i++)
-			{
-				video[i] = 0;
-			}
-			cursorPostY = 24;
-		}
-		if (c == '\n')
-				return;
-	}
-	video[cursorPostY * 2 * 80 + 2 * cursorPostX] = c;
-	video[cursorPostY * 2 * 80 + 2 * cursorPostX + 1] = 0x07;
-
-	cursorPostX++;
+		terminal.write(&c, 1);
 }
 
 static void printString(const char* s)
