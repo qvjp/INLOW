@@ -2,6 +2,7 @@
 #define KERNEL_PROCESS_H
 
 #include <inlow/kernel/addressspace.h>
+#include <inlow/kernel/filedescription.h>
 #include <inlow/kernel/interrupts.h>
 
 class Process
@@ -17,6 +18,8 @@ class Process
 			void* stack;
 			void* kernelStack;
 
+	public:
+			FileDescription* fd[20];
 	public:
 			static void initialize();
 			static Process* loadELF(vaddr_t elf);
