@@ -20,6 +20,9 @@ void Interrupts::initPic()
 	outb(PIC1_DATA, 32);
 	outb(PIC2_DATA, 40);
 
+	outb(PIC1_DATA, 4);
+	outb(PIC2_DATA, 2);
+
 	outb(PIC1_DATA, 0x1);
 	outb(PIC2_DATA, 0x1);
 }
