@@ -7,7 +7,7 @@ BUILD = ../build/$(ARCH)/libc
 ARFLAGS := -crs
 CFLAGS ?= -O2 -g
 CFLAGS += --sysroot=$(SYSROOT) -std=gnu11 -ffreestanding -Wall -Wextra
-CPPFLAGS += -I include -I $(SYSROOT)/usr/include
+CPPFLAGS += -I include -I $(SYSROOT)/usr/include -D_ALL_SOURCE
 CXXFLAGS ?= -O2 -g
 CXXFLAGS += --sysroot=$(SYSROOT) -std=gnu++14 -ffreestanding -Wall -Wextra
 
