@@ -3,6 +3,7 @@
 #include <inlow/kernel/print.h>
 #include <inlow/kernel/physicalmemory.h>
 #include <inlow/kernel/process.h>
+#include <inlow/kernel/ps2.h>
 
 static void startProcesses(multiboot_info* multiboot);
 
@@ -18,6 +19,8 @@ extern "C" void kernel_main(uint32_t, paddr_t multibootAddress)
 		PhysicalMemory::initialize(multiboot);
 		Print::printf("Physical Memory initialized\n");
 
+		PS2::initialize();
+		Print::printf("PS/2 Controller initialized\n");
 
 		Process::initialize();
 		startProcesses(multiboot);

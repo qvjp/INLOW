@@ -31,6 +31,8 @@ OBJ := addressspace.o \
 		print.o \
 		physicalmemory.o \
 		process.o \
+		ps2.o \
+		ps2keyboard.o \
 		syscall.o \
 		terminal.o \
 		vnode.o

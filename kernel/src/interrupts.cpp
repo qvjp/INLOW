@@ -10,6 +10,8 @@
 
 #define PIC_EOI 0x20
 
+void (*Interrupts::irqHandlers[16])(int) = {0};
+
 void Interrupts::initPic()
 {
 	outb(PIC1_COMMAND, 0x11);
@@ -51,13 +53,19 @@ extern "C" InterruptContext* handleInterrupt(InterruptContext* context)
 	else if(context->interrupt <= 47) // IRQ
 	{
 		//Print::printf("IRQ %u occurred!\n", context->interrupt - 32);
-		if(context->interrupt == 32)
+		int irq = context->interrupt - 32;
+		if(irq == 0)
 		{
 			newContext = Process::schedule(context);
 		}
+
+		if (Interrupts::irqHandlers[irq])
+		{
+			Interrupts::irqHandlers[irq](irq);
+		}
 		
 		// Send End of Interrupt
-		if (context->interrupt >= 40)
+		if (irq >= 8)
 		{
 			outb(PIC2_COMMAND, PIC_EOI);
 		}	
