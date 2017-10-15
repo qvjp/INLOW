@@ -1,11 +1,9 @@
-#include <string.h>
-#include <unistd.h>
+#include <stdio.h>
 
 int main(int argc, char* argv[])
 {
 	(void) argc;
 	(void) argv;
-	const char* hello = "Hello World, from userspcae!\n";
-	write(1, hello, strlen(hello));
+	puts("Hello world from userspace!");
 	return 40;
 }

@@ -17,13 +17,13 @@
 
 #if defined(_ALL_SOURCE)
 #if !defined(_ISOC11_SOURCE)
-define _ISOC11_SOURCE 1
+#define _ISOC11_SOURCE 1
 #endif
 #if !defined(_POSIX_C_SOURCE)
-define _POSIX_C_SOURCE 200809L
+#define _POSIX_C_SOURCE 200809L
 #endif
 #if !defined(_INLOW_SOURCE)
-define _INLOW_SOURCE 1
+#define _INLOW_SOURCE 1
 #endif
 #endif
 
