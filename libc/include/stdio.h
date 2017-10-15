@@ -27,12 +27,14 @@ extern "C"
 
 		extern FILE* stdout;
 #define stdout stdout
-
+		int fprintf(FILE* __restrict, const char* __restrict, ...);
 		int fputc(int, FILE*);
 		int fputs(const char* __restrict, FILE* __restrict);
+		int printf(const char* __restrict, ...);
 		int putc(int, FILE*);
 		int putchar(int);
 		int puts(const char*);
+		int vfprintf(FILE* __restrict, const char* __restrict, __gnuc_va_list);
 
 #if __USE_INLOW || __USE_POSIX
 		void flockfile(FILE*);
@@ -43,13 +45,14 @@ extern "C"
 #if __USE_INLOW
 		int fputc_unlocked(int, FILE*);
 		int fputs_unlocked(const char* __restrict, FILE* __restrict);
+		int vcbprintf(void*, size_t (*)(void*, const char*, size_t), const char*, __gnuc_va_list);
+		int vfprintf_unlocked(FILE* __restrict, const char* __restrict, __gnuc_va_list);
 #endif
 
 		extern FILE* stderr;
 #define stderr stderr
 		
 		int fflush(FILE*);
-		int fprintf(FILE* __restrict, const char* __restrict, ...);
 
 #define SEEK_SET 1
 		int fclose(FILE*);
@@ -59,7 +62,6 @@ extern "C"
 		long ftell(FILE*);
 		size_t fwrite(const void* __restrict, size_t, size_t, FILE* __restrict);
 		void setbuf(FILE* __restrict, char* __restrict);
-		int vfprintf(FILE* __restrict, const char* __restrict, __gnuc_va_list);
 
 #ifdef __cplusplus
 }
