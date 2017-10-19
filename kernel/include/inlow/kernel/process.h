@@ -11,7 +11,6 @@ class Process
 			Process();
 			void exit(int status);
 	private:
-			AddressSpace* addressSpace;
 			InterruptContext* interruptContext;
 			Process* prev;
 			Process* next;
@@ -19,6 +18,7 @@ class Process
 			void* kernelStack;
 
 	public:
+			AddressSpace* addressSpace;
 			FileDescription* fd[20];
 	public:
 			static void initialize();

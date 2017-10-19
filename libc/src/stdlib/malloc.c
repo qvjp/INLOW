@@ -1,11 +1,13 @@
+#include <stdalign.h>
+#include <stddef.h>
 #include "malloc.h"
 
 void* malloc(size_t size)
 {
 	if (size == 0)
-			size = 16;
+			size = 1;
 	size_t chunksSize = sizeof(Chunk);
-	size = alignUp(size, 16);
+	size = alignUp(size, alignof(max_align_t));
 	size_t totalSize = chunksSize + size;
 
 	__lockHeap();

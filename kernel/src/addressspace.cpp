@@ -1,9 +1,13 @@
 #include <assert.h>
+#include <errno.h>
 #include <string.h>
+#include <inlow/mman.h>
 #include <inlow/kernel/addressspace.h>
 #include <inlow/kernel/kernel.h>
 #include <inlow/kernel/print.h>
 #include <inlow/kernel/physicalmemory.h>
+#include <inlow/kernel/process.h>
+#include <inlow/kernel/syscall.h>
 
 #define RECURSIVE_MAPPING 0xFFC00000
 
@@ -384,6 +388,41 @@ void AddressSpace::unmapRange(vaddr_t firstVirtualAddress, size_t nPages)
 	}
 }
 
+static void* mmapImplementation(void*, size_t size, int, int flags, int, off_t)
+{
+	if (size == 0 || !(flags & MAP_PRIVATE))
+	{
+		errno = EINVAL;
+		return MAP_FAILED;
+	}
+
+	if (flags & MAP_ANONYMOUS)
+	{
+		AddressSpace* addressSpace = Process::current->addressSpace;
+		return (void*) addressSpace->allocate(size / 0x1000);
+	}
+
+	//TODO: Implement other flags than MAP_ANONYMOUS
+	errno = ENOTSUP;
+	return MAP_FAILED;
+}
+
+void* Syscall::mmap(__mmapRequest* request)
+{
+	return mmapImplementation(request->_addr, request->_size, request->_protection, request->_flags, request->_fd, request->_offset);
+}
+
+int Syscall::munmap(void* addr, size_t size)
+{
+	if (size == 0 || (vaddr_t) addr & 0xFFF)
+	{
+		errno = EINVAL;
+		return -1;
+	}
+	AddressSpace* addressSpace = Process::current->addressSpace;
+	addressSpace->free((vaddr_t) addr, size / 0x1000);
+	return 0;
+}
 // These two function are called from libk
 extern "C" void* __mapPages(size_t nPages)
 {

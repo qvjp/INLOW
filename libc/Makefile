@@ -16,9 +16,13 @@ LIBK_FLAGS += -D__is_inlow_libk
 
 COMMON_OBJ := \
 		cxx/new \
+		cxx/delete \
 		cxx/purevirtual \
 		errno/errno \
 		stdio/vcbprintf \
+		stdlib/free \
+		stdlib/malloc \
+		stdlib/malloc-util \
 		string/memcmp \
 		string/memcpy \
 		string/memmove \
@@ -27,6 +31,7 @@ COMMON_OBJ := \
 
 LIBC_OBJ := \
 		$(COMMON_OBJ) \
+		assert/assert \
 		stdio/fgetc_unlocked \
 		stdio/fgetc \
 		stdio/fgets_unlocked \
@@ -55,16 +60,13 @@ LIBC_OBJ := \
 		stdio/vfprintf \
 		stdlib/_Exit \
 		stdlib/exit \
+		sys/mman/mmap \
+		sys/mman/munmap \
 		unistd/_exit \
 		unistd/read \
 		unistd/write
 
-LIBK_OBJ := \
-		$(COMMON_OBJ) \
-		cxx/delete \
-		stdlib/free \
-		stdlib/malloc \
-		stdlib/malloc-util
+LIBK_OBJ := $(COMMON_OBJ)
 
 CRT_OBJ := \
 		$(BUILD)/arch/i686/crt0.o \
