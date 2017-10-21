@@ -1,3 +1,4 @@
+#include <errno.h>
 #include <string.h>
 #include <inlow/kernel/elf.h>
 #include <inlow/kernel/print.h>
@@ -18,12 +19,15 @@ Process::Process()
 	stack = nullptr;
 	kernelStack = nullptr;
 	memset(fd, 0, sizeof(fd));
+	rootFd = nullptr;
+	cwdFd = nullptr;
 }
 
-void Process::initialize()
+void Process::initialize(FileDescription* rootFd)
 {
 	idleProcess = new Process();
 	idleProcess->interruptContext = new InterruptContext();
+	idleProcess->rootFd = rootFd;
 	current = idleProcess;
 	firstProcess = nullptr;
 }
@@ -114,6 +118,10 @@ Process* Process::startProcess(void* entry, AddressSpace* addressSpace)
 	process->fd[0] = new FileDescription(&terminal); //stdin
 	process->fd[1] = new FileDescription(&terminal); //stdout
 	process->fd[2] = new FileDescription(&terminal); //stderr
+
+	process->rootFd = idleProcess->rootFd;
+	process->cwdFd = process->rootFd;
+
 	process->next = firstProcess;
 	if (process->next)
 	{
@@ -139,4 +147,18 @@ void Process::exit(int status)
 		firstProcess = next;
 	}
 	Print::printf("Process exited with status %u\n", status);
+}
+
+int Process::registerFileDescriptor(FileDescription* descr)
+{
+	for (int i = 0; i< 20; i++)
+	{
+		if (fd[i] == nullptr)
+		{
+			fd[i] = descr;
+			return i;
+		}
+	}
+	errno = EMFILE;
+	return -1;
 }

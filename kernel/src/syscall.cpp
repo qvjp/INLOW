@@ -1,3 +1,4 @@
+#include <inlow/fcntl.h>
 #include <inlow/kernel/print.h>
 #include <inlow/kernel/process.h>
 #include <inlow/kernel/syscall.h>
@@ -8,6 +9,7 @@ static const void* syscallList[NUM_SYSCALLS] = {
 	(void*) Syscall::read,
 	(void*) Syscall::mmap,
 	(void*) Syscall::munmap,
+	(void*) Syscall::openat,
 };
 
 extern "C" const void* getSyscallHandler(unsigned interruptNumber)
@@ -29,6 +31,22 @@ NORETURN void Syscall::exit(int status)
 	__builtin_unreachable();
 }
 
+int Syscall::openat(int fd, const char* path, int flags, mode_t mode)
+{
+	FileDescription* descr;
+
+	if (path[0] == '/')
+			descr = Process::current->rootFd;
+	else if (fd == AT_FDCWD)
+			descr = Process::current->cwdFd;
+	else
+			descr = Process::current->fd[fd];
+
+	FileDescription* result = descr->openat(path, flags,mode);
+	if (!result)
+			return -1;
+	return Process::current->registerFileDescriptor(result);
+}
 ssize_t Syscall::read(int fd, void* buffer, size_t size)
 {
 	FileDescription* descr = Process::current->fd[fd];

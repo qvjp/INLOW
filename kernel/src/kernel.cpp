@@ -1,5 +1,7 @@
 #include <string.h>
 #include <inlow/kernel/addressspace.h>
+#include <inlow/kernel/directory.h>
+#include <inlow/kernel/file.h>
 #include <inlow/kernel/print.h>
 #include <inlow/kernel/physicalmemory.h>
 #include <inlow/kernel/process.h>
@@ -22,7 +24,12 @@ extern "C" void kernel_main(uint32_t, paddr_t multibootAddress)
 		PS2::initialize();
 		Print::printf("PS/2 Controller initialized\n");
 
-		Process::initialize();
+		// Create a root directory with a file.
+		DirectoryVnode* rootDir = new DirectoryVnode();
+		rootDir->addChildNode("hello", new FileVnode());
+		FileDescription* rootFd = new FileDescription(rootDir);
+		
+		Process::initialize(rootFd);
 		startProcesses(multiboot);
 
 		Print::printf("Processes initialized\n");
