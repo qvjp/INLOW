@@ -41,9 +41,13 @@ OBJ += arch/i686/interrupts.o \
 	   arch/i686/loader.o \
 	   arch/i686/syscall.o
 
-OBJ := $(START_OBJ) $(addprefix $(BUILD)/, $(OBJ)) $(END_OBJ)
 
 all: $(BUILD)/kernel
+
+OBJ := $(addprefix $(BUILD)/, $(OBJ))
+-include $(OBJ:.o=.d)
+
+OBJ := $(START_OBJ) $(OBJ) $(END_OBJ)
 
 install-headers:
 	@mkdir -p $(INCLUDE_DIR)
@@ -54,11 +58,11 @@ $(BUILD)/kernel: $(OBJ)
 
 $(BUILD)/%.o: src/%.cpp
 	@mkdir -p $(dir $@)
-	$(CXX) $(CXXPARAMETER) $(CPPPARAMETER) -c -o $@ $^
+	$(CXX) $(CXXPARAMETER) $(CPPPARAMETER) -MD -MP -c -o $@ $<
 
 $(BUILD)/%.o: src/%.s
 	@mkdir -p $(dir $@)
-	$(CXX) $(ASPARAMETER) $(CPPPARAMETER) -c -o $@ $^
+	$(CXX) $(ASPARAMETER) $(CPPPARAMETER) -MD -MP -c -o $@ $<
 
 clean:
 	rm -rf $(BUILD)
