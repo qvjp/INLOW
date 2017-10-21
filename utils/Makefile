@@ -6,7 +6,8 @@ include $(REPO_ROOT)/build-config/config.mk
 BUILD = $(BUILD_DIR)/utils
 
 CFLAGS ?= -O2 -g
-CFLAGS += -Wall -Wextra
+CFLAGS += --sysroot=$(SYSROOT) -Wall -Wextra
+CPPFLAGS += -D_INLOW_SOURCE
 
 PROGRAMS = \
 		   test

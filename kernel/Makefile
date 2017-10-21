@@ -4,11 +4,10 @@ include ../build-config/config.mk
 
 BUILD = ../build/$(ARCH)/kernel
 
-ASPARAMETER += -Wa,--divide
 CXXPARAMETER ?= -O2 -g
 CXXPARAMETER += --sysroot=$(SYSROOT) -std=gnu++14 -ffreestanding -fno-exceptions
 CXXPARAMETER += -fno-rtti -Wall -Wextra
-CPPPARAMETER += -I include -I $(SYSROOT)/usr/include
+CPPPARAMETER += -I include
 CPPPARAMETER += -D__is_inlow_kernel -D_DENNIX_SOURCE
 LDPARAMETER += --sysroot=$(SYSROOT) -T linker.ld -ffreestanding -nostdlib
 LIBS += -lk -lgcc
@@ -45,6 +44,10 @@ OBJ += arch/i686/interrupts.o \
 OBJ := $(START_OBJ) $(addprefix $(BUILD)/, $(OBJ)) $(END_OBJ)
 
 all: $(BUILD)/kernel
+
+install-headers:
+	@mkdir -p $(INCLUDE_DIR)
+	cp -rf include/. $(INCLUDE_DIR)
 
 $(BUILD)/kernel: $(OBJ)
 	$(CXX) $(LDPARAMETER) -o $(BUILD)/kernel.elf $^ $(LIBS)

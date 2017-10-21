@@ -8,3 +8,5 @@ MKRESCUE ?= grub-mkrescue
 ISO ?= INLOW.iso
 
 SYSROOT ?= ../sysroot
+INCLUDE_DIR = $(SYSROOT)/usr/include
+LIB_DIR = $(SYSROOT)/usr/lib
