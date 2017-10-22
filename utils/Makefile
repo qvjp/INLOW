@@ -13,6 +13,10 @@ PROGRAMS = \
 		   test
 
 all: $(addprefix $(BUILD)/, $(PROGRAMS))
+
+install: $(addprefix $(BUILD)/, $(PROGRAMS))
+	@mkdir -p $(BIN_DIR)
+	cp -f $^ $(BIN_DIR)
 	
 $(BUILD)/%: %.c
 	@mkdir -p $(dir $@)
@@ -21,4 +25,4 @@ $(BUILD)/%: %.c
 clean:
 	rm -rf $(BUILD)
 
-.PHONY: all clean
+.PHONY: all install clean

@@ -8,13 +8,18 @@ kernel: $(INCLUDE_DIR) $(LIB_DIR)
 libc: $(INCLUDE_DIR)
 	$(MAKE) -C libc
 
-install-libc:
-	$(MAKE) -C libc install
+install-all: install-headers install-libc install-utils
 
 install-headers:
 	$(MAKE) -C kernel install-headers
 	$(MAKE) -C libc install-headers
-INITRD = $(BUILD_DIR)/initrd/initrd.tar
+
+install-libc:
+	$(MAKE) -C libc install-libs
+
+install-utils:
+	$(MAKE) -C utils install
+
 iso: $(ISO)
 
 $(ISO): $(BUILD_DIR)/kernel/kernel.elf $(INITRD)
@@ -27,11 +32,9 @@ $(ISO): $(BUILD_DIR)/kernel/kernel.elf $(INITRD)
 $(KERNEL): $(INCLUDE_DIR)
 	$(MAKE) -C kernel
 
-$(INITRD): $(BUILD_DIR)/utils/test
-	@mkdir -p $(BUILD_DIR)/initrd
-	echo Hello World! > $(BUILD_DIR)/initrd/hello
-	cp -f $(BUILD_DIR)/utils/test $(BUILD_DIR)/initrd
-	cd $(BUILD_DIR)/initrd && tar cvf initrd.tar --format=ustar hello test
+$(INITRD): $(SYSROOT)
+	echo Hello World! > $(SYSROOT)/hello
+	cd $(SYSROOT) && tar cvf ../$(INITRD) --format=ustar *
 
 qemu: $(ISO)
 	qemu-system-i386 -cdrom $^
@@ -42,6 +45,11 @@ run: $(ISO)
 
 utils: $(INCLUDE_DIR)
 	$(MAKE) -C utils
+
+$(SYSROOT): $(INCLUDE_DIR) $(LIB_DIR) $(BIN_DIR)
+
+$(BIN_DIR):
+	$(MAKE) -C utils install
 
 $(INCLUDE_DIR):
 	$(MAKE) -C kernel install-headers
@@ -59,6 +67,6 @@ distclean:
 	rm -rf $(ISO)
 
 
-.PHONY: all kernel libc install-headers install-libc iso qemu clean distclean
+.PHONY: all kernel libc install-all install-headers install-libc
 
-.PHONY: utils
+.PHONY: install_utils iso qemu utils clean distclean

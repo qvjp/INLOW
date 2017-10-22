@@ -1,4 +1,5 @@
 ARCH ?= i686
+REPO_ROOT = ..
 
 include ../build-config/config.mk
 

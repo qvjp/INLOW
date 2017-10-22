@@ -7,6 +7,8 @@ MKRESCUE ?= grub-mkrescue
 
 ISO ?= INLOW.iso
 
-SYSROOT ?= ../sysroot
+SYSROOT ?= $(REPO_ROOT)/sysroot
 INCLUDE_DIR = $(SYSROOT)/usr/include
 LIB_DIR = $(SYSROOT)/usr/lib
+BIN_DIR = $(SYSROOT)/bin
+INITRD = $(BUILD_DIR)/initrd.tar

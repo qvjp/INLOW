@@ -6,7 +6,7 @@
 class DirectoryVnode : public Vnode
 {
 	public:
-			DirectoryVnode();
+			DirectoryVnode(DirectoryVnode* parent);
 			void addChildNode(const char* path, Vnode* vnode);
 			virtual Vnode* openat(const char* path, int flags, mode_t mode);
 	public:
@@ -14,6 +14,7 @@ class DirectoryVnode : public Vnode
 	private:
 			Vnode** childNodes;
 			const char** fileNames;
+			DirectoryVnode* parent;
 };
 
 #endif

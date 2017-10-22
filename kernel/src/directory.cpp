@@ -2,11 +2,12 @@
 #include <string.h>
 #include <inlow/kernel/directory.h>
 
-DirectoryVnode::DirectoryVnode()
+DirectoryVnode::DirectoryVnode(DirectoryVnode* parent)
 {
 	childCount = 0;
 	childNodes = nullptr;
 	fileNames = nullptr;
+	this->parent = parent;
 }
 
 void DirectoryVnode::addChildNode(const char* path, Vnode* vnode)
@@ -20,7 +21,7 @@ void DirectoryVnode::addChildNode(const char* path, Vnode* vnode)
 	fileNames = newFileNames;
 
 	childNodes[childCount] = vnode;
-	fileNames[childCount] = path;
+	fileNames[childCount] = strdup(path);
 	childCount++;
 }
 
@@ -33,6 +34,11 @@ Vnode* DirectoryVnode::openat(const char* path, int flags, mode_t mode)
 
 	if (length == 0)
 			return this;
+
+	if (strncmp(path, ".", length) == 0)
+			return this;
+	else if (length == 2 && strncmp(path, "..", length) == 0)
+			return parent;
 
 	for (size_t i = 0; i < childCount; i++)
 	{
