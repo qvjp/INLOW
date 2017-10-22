@@ -20,6 +20,10 @@ extern "C"
 		size_t strlen(const char*);
 		int strncmp(const char*, const char*, size_t);
 
+#if __USE_INLOW || __USE_POSIX
+		char* strdup(const char*);
+#endif
+
 		char* strcpy(char* __restrict, const char* __restrict);
 
 #ifdef __cplusplus

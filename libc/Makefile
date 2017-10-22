@@ -15,6 +15,7 @@ LIBC_FLAGS += -D__is_inlow_libc
 LIBK_FLAGS += -D__is_inlow_libk
 
 COMMON_OBJ := \
+		ctype/isspace \
 		cxx/new \
 		cxx/delete \
 		cxx/purevirtual \
@@ -23,12 +24,15 @@ COMMON_OBJ := \
 		stdlib/free \
 		stdlib/malloc \
 		stdlib/malloc-util \
+		stdlib/strtol \
+		stdlib/strtoul \
 		string/memcmp \
 		string/memcpy \
 		string/memmove \
 		string/memset \
 		string/strcmp \
 		string/strcspn \
+		string/strdup \
 		string/strlen \
 		string/strncmp
 

@@ -27,6 +27,7 @@ OBJ := addressspace.o \
 		filedescription.o \
 		gdt.o \
 		idt.o \
+		initrd.o \
 		interrupts.o \
 		kernel.o \
 		keyboard.o \

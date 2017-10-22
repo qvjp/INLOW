@@ -15,6 +15,9 @@ extern "C" {
 
 		void free(void*);
 		void* malloc(size_t);
+		long strtol(const char* __restrict, char** __restrict, int);
+		unsigned long strtoul(const char* __restrict, char** __restrict, int);
+
 
 		__noreturn void abort(void);
 

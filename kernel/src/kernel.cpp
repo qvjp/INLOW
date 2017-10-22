@@ -2,12 +2,13 @@
 #include <inlow/kernel/addressspace.h>
 #include <inlow/kernel/directory.h>
 #include <inlow/kernel/file.h>
+#include <inlow/kernel/initrd.h>
 #include <inlow/kernel/print.h>
 #include <inlow/kernel/physicalmemory.h>
 #include <inlow/kernel/process.h>
 #include <inlow/kernel/ps2.h>
 
-static void startProcesses(multiboot_info* multiboot);
+static DirectoryVnode* loadInitrd(multiboot_info* multiboot);
 
 extern "C" void kernel_main(uint32_t, paddr_t multibootAddress)
 {
@@ -24,13 +25,17 @@ extern "C" void kernel_main(uint32_t, paddr_t multibootAddress)
 		PS2::initialize();
 		Print::printf("PS/2 Controller initialized\n");
 
-		// Create a root directory with a file.
-		DirectoryVnode* rootDir = new DirectoryVnode();
-		rootDir->addChildNode("hello", new FileVnode());
+		// Load the initrd
+		DirectoryVnode* rootDir = loadInitrd(multiboot);
 		FileDescription* rootFd = new FileDescription(rootDir);
+		Print::printf("Initrd loaded\n");
 		
 		Process::initialize(rootFd);
-		startProcesses(multiboot);
+		FileVnode* program = (FileVnode*) rootDir->openat("test", 0, 0);
+		if (program)
+		{
+				Process::loadELF((vaddr_t) program->data);
+		}
 
 		Print::printf("Processes initialized\n");
 		kernelSpace->unmap((vaddr_t) multiboot);
@@ -47,8 +52,9 @@ extern "C" void kernel_main(uint32_t, paddr_t multibootAddress)
 
 }
 
-static void startProcesses(multiboot_info* multiboot)
+static DirectoryVnode* loadInitrd(multiboot_info* multiboot)
 {
+		DirectoryVnode* root = nullptr;
 		paddr_t modulesAligned = multiboot->mods_addr & ~0xFFF;
 		ptrdiff_t offset = multiboot->mods_addr - modulesAligned;
 
@@ -58,9 +64,12 @@ static void startProcesses(multiboot_info* multiboot)
 		for (size_t i = 0; i < multiboot->mods_count; i++)
 		{
 			size_t nPages = ALIGNUP(modules[i].mod_end - modules[i].mod_start, 0x1000) / 0x1000;
-			vaddr_t elf = kernelSpace->mapRange(modules[i].mod_start, nPages, PAGE_PRESENT);
-			Process::loadELF(elf);
-			kernelSpace->unmapRange(elf, nPages);
+			vaddr_t initrd  = kernelSpace->mapRange(modules[i].mod_start, nPages, PAGE_PRESENT);
+			root = Initrd::loadInitrd(initrd);
+			kernelSpace->unmapRange(initrd, nPages);
+			if (root->childCount)
+					break;
 		}
 		kernelSpace->unmap((vaddr_t) modulesPage);
+		return root;
 }
