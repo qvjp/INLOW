@@ -33,7 +33,6 @@ $(KERNEL): $(INCLUDE_DIR)
 	$(MAKE) -C kernel
 
 $(INITRD): $(SYSROOT)
-	echo Hello World! > $(SYSROOT)/hello
 	cd $(SYSROOT) && tar cvf ../$(INITRD) --format=ustar *
 
 qemu: $(ISO)
@@ -69,4 +68,4 @@ distclean:
 
 .PHONY: all kernel libc install-all install-headers install-libc
 
-.PHONY: install_utils iso qemu utils clean distclean
+.PHONY: install-utils iso qemu utils clean distclean

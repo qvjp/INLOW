@@ -46,7 +46,9 @@ LIBC_OBJ := \
 		assert/assert \
 		fcntl/open \
 		fcntl/openat \
+		stdio/fclose \
 		stdio/fdopen \
+		stdio/fflush \
 		stdio/fgetc_unlocked \
 		stdio/fgetc \
 		stdio/fgets_unlocked \
@@ -78,6 +80,7 @@ LIBC_OBJ := \
 		stdlib/exit \
 		sys/mman/mmap \
 		sys/mman/munmap \
+		unistd/close \
 		unistd/_exit \
 		unistd/read \
 		unistd/write

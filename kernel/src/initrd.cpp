@@ -71,7 +71,7 @@ DirectoryVnode* Initrd::loadInitrd(vaddr_t initrd)
 						return root;
 				}
 				directory->addChildNode(fileName, newFile);
-				Print::printf("File: %s/%s, size = %zu\n", dirName, fileName, size);
+				// Print::printf("File: %s/%s, size = %zu\n", dirName, fileName, size);
 
 				free(path);
 				free(path2);

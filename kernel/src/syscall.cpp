@@ -1,3 +1,4 @@
+#include <errno.h>
 #include <inlow/fcntl.h>
 #include <inlow/kernel/print.h>
 #include <inlow/kernel/process.h>
@@ -10,6 +11,7 @@ static const void* syscallList[NUM_SYSCALLS] = {
 	(void*) Syscall::mmap,
 	(void*) Syscall::munmap,
 	(void*) Syscall::openat,
+	(void*) Syscall::close,
 };
 
 extern "C" const void* getSyscallHandler(unsigned interruptNumber)
@@ -22,6 +24,20 @@ extern "C" const void* getSyscallHandler(unsigned interruptNumber)
 	{
 		return syscallList[interruptNumber];
 	}
+}
+
+int Syscall::close(int fd)
+{
+	FileDescription* descr = Process::current->fd[fd];
+	if (!descr)
+	{
+		errno = EBADF;
+		return -1;
+	}
+
+	delete descr;
+	Process::current->fd[fd] = nullptr;
+	return 0;
 }
 
 NORETURN void Syscall::exit(int status)

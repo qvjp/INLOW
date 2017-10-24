@@ -14,6 +14,8 @@ namespace Syscall
 	void* mmap(__mmapRequest* request);
 	int munmap(void* addr, size_t size);
 	int openat(int fd, const char* path, int flags, mode_t mode);
+	int close(int fd);
+	
 	void badSyscall();
 }
 

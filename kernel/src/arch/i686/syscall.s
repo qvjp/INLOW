@@ -3,7 +3,7 @@
 .type syscallHandler, @function
 syscallHandler:
 	mov %esp, %ebp
-	add $(~0xFF), %esp
+	and $(~0xFF), %esp
 	sub $12, %esp
 	push %edi
 

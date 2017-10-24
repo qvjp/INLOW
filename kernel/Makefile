@@ -9,7 +9,7 @@ CXXPARAMETER ?= -O2 -g
 CXXPARAMETER += --sysroot=$(SYSROOT) -std=gnu++14 -ffreestanding -fno-exceptions
 CXXPARAMETER += -fno-rtti -Wall -Wextra
 CPPPARAMETER += -I include
-CPPPARAMETER += -D__is_inlow_kernel -D_DENNIX_SOURCE
+CPPPARAMETER += -D__is_inlow_kernel -D_INLOW_SOURCE
 LDPARAMETER += --sysroot=$(SYSROOT) -T linker.ld -ffreestanding -nostdlib
 LIBS += -lk -lgcc
 
