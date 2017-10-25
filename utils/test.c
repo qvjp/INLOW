@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include <unistd.h>
 
 int main(int argc, char* argv[])
@@ -6,21 +7,18 @@ int main(int argc, char* argv[])
 	(void) argc;
 	(void) argv;
 	
-	printf("Hello %s from userspace!\n", "World");
 
-	pid_t pid = fork();
+	puts("Start the other program?");
 	
-	if (pid == -1)
+	char yes[] = "yes\n";
+	char buffer[81];
+	fgets(buffer, sizeof(buffer), stdin);
+
+	if (strcmp(buffer, yes) == 0)
 	{
-		printf("fork() failed\n");
-	}
-	else if (pid == 0)
-	{
-		printf("Hello from child process!\n");
-	}
-	else
-	{
-		printf("Hello from parent process. The new process has pid %u.\n", pid);
+		char* const args[] = { NULL };
+		execv("/bin/test2", args);
+		puts("execv failed!\n");
 	}
 	return 40;
 }

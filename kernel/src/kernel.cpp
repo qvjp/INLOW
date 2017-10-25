@@ -34,7 +34,9 @@ extern "C" void kernel_main(uint32_t, paddr_t multibootAddress)
 		FileVnode* program = (FileVnode*) rootDir->openat("/bin/test", 0, 0);
 		if (program)
 		{
-				Process::loadELF((vaddr_t) program->data);
+				Process* newProcess = new Process();
+				newProcess->execute(new FileDescription(program), nullptr, nullptr);
+				Process::addProcess(newProcess);
 		}
 
 		Print::printf("Processes initialized\n");

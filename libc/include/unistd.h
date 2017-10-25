@@ -20,6 +20,8 @@ extern "C"
 {
 #endif
 		int close(int);
+		int execv(const char*, char* const[]);
+		int execve(const char*, char* const[], char* const[]);
 		__noreturn void _exit(int);
 		pid_t fork(void);
 		ssize_t read(int, void*, size_t);
@@ -30,8 +32,6 @@ extern "C"
 		pid_t regfork(int, struct regfork*);
 #endif
 
-		int execv(const char*, char* const[]);
-		int execve(const char*, char* const[], char* const[]);
 		int execvp(const char*, char* const[]);
 
 #ifdef __cplusplus

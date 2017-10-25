@@ -1,6 +1,7 @@
 #include <errno.h>
 #include <string.h>
 #include <inlow/kernel/elf.h>
+#include <inlow/kernel/file.h>
 #include <inlow/kernel/print.h>
 #include <inlow/kernel/physicalmemory.h>
 #include <inlow/kernel/process.h>
@@ -14,7 +15,7 @@ static pid_t nextPid = 0;
 
 Process::Process()
 {
-	addressSpace = kernelSpace;
+	addressSpace = nullptr;
 	interruptContext = nullptr;
 	prev = nullptr;
 	next = nullptr;
@@ -23,23 +24,38 @@ Process::Process()
 	rootFd = nullptr;
 	cwdFd = nullptr;
 	pid = nextPid++;
+	contextChanged = false;
+	fdInitialized = false;
 }
 
 void Process::initialize(FileDescription* rootFd)
 {
 	idleProcess = new Process();
+	idleProcess->addressSpace = kernelSpace;
 	idleProcess->interruptContext = new InterruptContext();
 	idleProcess->rootFd = rootFd;
 	current = idleProcess;
 	firstProcess = nullptr;
 }
 
-Process* Process::loadELF(vaddr_t elf)
+void Process::addProcess(Process* process)
+{
+	process->next = firstProcess;
+	if (process->next)
+	{
+		process->next->prev = process;
+	}
+	firstProcess = process;
+}
+uintptr_t Process::loadELF(uintptr_t elf)
 {
 	ELFHeader* header = (ELFHeader*)elf;
 	ProgramHeader* programHeader = (ProgramHeader*) (elf + header->e_phoff);
 
-	AddressSpace* addressSpace = new AddressSpace();
+	if (addressSpace)
+			delete addressSpace;
+	addressSpace = new AddressSpace();
+
 	for (size_t i = 0; i < header->e_phnum; i++)
 	{
 		if (programHeader[i].p_type != PT_LOAD)
@@ -56,12 +72,19 @@ Process* Process::loadELF(vaddr_t elf)
 		memcpy((void*) (dest + offset), src, programHeader[i].p_filesz);
 		kernelSpace->unmapPhysical(dest, size);
 	}
-	return startProcess((void*) header->e_entry, addressSpace);
+	return (uintptr_t) header->e_entry;
 }
 
 InterruptContext* Process::schedule(InterruptContext* context)
 {
-	current->interruptContext = context;
+	if (likely(!current->contextChanged))
+	{
+		current->interruptContext = context;
+	}
+	else
+	{
+		current->contextChanged = false;
+	}
 
 	if (current->next)
 	{
@@ -84,47 +107,44 @@ InterruptContext* Process::schedule(InterruptContext* context)
 	return current->interruptContext;
 }
 
-Process* Process::startProcess(void* entry, AddressSpace* addressSpace)
+int Process::execute(FileDescription* descr, char* const [], char* const [])
 {
-	Process* process = new Process();
+	// load the program
+	FileVnode* file = (FileVnode*) descr->vnode;
+	uintptr_t entry = loadELF((uintptr_t) file->data);
+
 	vaddr_t stack = addressSpace->mapMemory(0x1000, PROT_READ | PROT_WRITE);
-	process->kernelStack = (void*) kernelSpace->mapMemory(0x1000, PROT_READ | PROT_WRITE);
+	kernelStack = (void*) kernelSpace->mapMemory(0x1000, PROT_READ | PROT_WRITE);
 
-	process->interruptContext = (InterruptContext*) ((uintptr_t)process->kernelStack + 0x1000 - sizeof(InterruptContext));
+	interruptContext = (InterruptContext*) ((uintptr_t)kernelStack + 0x1000 - sizeof(InterruptContext));
 
-	process->interruptContext->eax = 0;
-	process->interruptContext->ebx = 0;
-	process->interruptContext->ecx = 0;
-	process->interruptContext->edx = 0;
-	process->interruptContext->esi = 0;
-	process->interruptContext->edi = 0;
-	process->interruptContext->ebp = 0;
-	process->interruptContext->interrupt = 0;
-	process->interruptContext->error = 0;
-	process->interruptContext->eip = (uint32_t)entry;
-	process->interruptContext->cs = 0x1B;
-	process->interruptContext->eflags = 0x200;//Interrupt enable
-	process->interruptContext->esp = (uint32_t) stack + 0x1000;
-	process->interruptContext->ss = 0x23;
+	memset(interruptContext, 0, sizeof(InterruptContext));
 
-	process->addressSpace = addressSpace;
+	// TODO: Pass argc, argv and envp to the process
+	interruptContext->eip = (uint32_t) entry;
+	interruptContext->cs = 0x1B;
+	interruptContext->eflags = 0x200;
+	interruptContext->esp = (uint32_t) stack + 0x1000;
+	interruptContext->ss = 0x23;
 
-	// Initialize file descriptors
-	process->fd[0] = new FileDescription(&terminal); //stdin
-	process->fd[1] = new FileDescription(&terminal); //stdout
-	process->fd[2] = new FileDescription(&terminal); //stderr
-
-	process->rootFd = new FileDescription(*idleProcess->rootFd);
-	process->cwdFd = new FileDescription(*process->rootFd);
-
-	process->next = firstProcess;
-	if (process->next)
+	if (!fdInitialized)
 	{
-		process->next->prev = process;
-	}
-	firstProcess = process;
+		// Initialize file descriptors
+		fd[0] = new FileDescription(&terminal); //stdin
+		fd[1] = new FileDescription(&terminal); //stdout
+		fd[2] = new FileDescription(&terminal); //stderr
 
-	return process;
+		rootFd = new FileDescription(*idleProcess->rootFd);
+		cwdFd = new FileDescription(*rootFd);
+		fdInitialized = true;
+	}
+
+	if (this == current)
+	{
+		contextChanged = true;
+	}
+
+	return 0;
 }
 
 void Process::exit(int status)
@@ -186,13 +206,9 @@ Process* Process::regfork(int, struct regfork* registers)
 
 	process->rootFd = new FileDescription(*rootFd);
 	process->cwdFd = new FileDescription(*cwdFd);
+	process->fdInitialized = true;
 
-	process->next = firstProcess;
-	if (process->next)
-	{
-		process->next->prev = process;
-	}
-	firstProcess = process;
+	addProcess(process);
 	return process;
 }
 int Process::registerFileDescriptor(FileDescription* descr)

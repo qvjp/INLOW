@@ -81,6 +81,9 @@ LIBC_OBJ := \
 		sys/mman/mmap \
 		sys/mman/munmap \
 		unistd/close \
+		unistd/environ \
+		unistd/execv \
+		unistd/execve \
 		unistd/_exit \
 		unistd/fork \
 		unistd/read \

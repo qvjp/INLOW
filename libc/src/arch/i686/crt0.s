@@ -13,6 +13,9 @@ _start:
 	push %ebx # argv
 	push %eax # argc
 
+	# Set environ
+	mov %ecx, environ
+
 	# Call global consrtuctors
 	call _init
 	
