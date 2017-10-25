@@ -82,7 +82,9 @@ LIBC_OBJ := \
 		sys/mman/munmap \
 		unistd/close \
 		unistd/_exit \
+		unistd/fork \
 		unistd/read \
+		unistd/regfork \
 		unistd/write
 
 LIBK_OBJ := $(COMMON_OBJ)
@@ -92,6 +94,7 @@ CRT_OBJ := \
 		$(BUILD)/arch/i686/crti.o \
 		$(BUILD)/arch/i686/crtn.o
 LIBC_OBJ += \
+			arch/i686/rfork \
 			arch/i686/syscall
 
 LIBC_OBJ := $(addprefix $(BUILD)/, $(addsuffix .o, $(LIBC_OBJ)))

@@ -8,7 +8,8 @@
 #define SYSCALL_MUNMAP 4
 #define SYSCALL_OPENAT 5
 #define SYSCALL_CLOSE 6
+#define SYSCALL_REGFORK 7
 
-#define NUM_SYSCALLS 7 
+#define NUM_SYSCALLS 8 
 
 #endif

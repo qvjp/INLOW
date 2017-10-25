@@ -2,6 +2,7 @@
 #define KERNEL_SYSCALL_H
 
 #include <sys/types.h>
+#include <inlow/fork.h>
 #include <inlow/syscall.h>
 #include <inlow/kernel/kernel.h>
 
@@ -15,6 +16,7 @@ namespace Syscall
 	int munmap(void* addr, size_t size);
 	int openat(int fd, const char* path, int flags, mode_t mode);
 	int close(int fd);
+	pid_t regfork(int flags, struct regfork* registers);
 	
 	void badSyscall();
 }

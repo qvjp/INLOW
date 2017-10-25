@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include <string.h>
+#include <unistd.h>
 
 int main(int argc, char* argv[])
 {
@@ -8,35 +8,19 @@ int main(int argc, char* argv[])
 	
 	printf("Hello %s from userspace!\n", "World");
 
-	char buffer[81];
-	char exit[] = "exit";
+	pid_t pid = fork();
 	
-	while (1)
+	if (pid == -1)
 	{
-		fgets(buffer, sizeof(buffer), stdin);
- 		size_t length = strlen(buffer);
-		if (buffer[length - 1] == '\n')
-		{
-			buffer[length - 1] = '\0';
-		}
-
-		if (strcmp(buffer, exit) == 0)
-		{
-			puts("Exiting.");
-			return 40;
-		}
-
-		
-		FILE* file = fopen(buffer, "r");
-
-		if (!file)
-		{
-			printf("Failed to open file '%s'\n", buffer);
-			continue;
-		}
-		
-		while (fgets(buffer, sizeof(buffer), file))
-				fputs(buffer, stdout);
-		fclose(file);
+		printf("fork() failed\n");
 	}
+	else if (pid == 0)
+	{
+		printf("Hello from child process!\n");
+	}
+	else
+	{
+		printf("Hello from parent process. The new process has pid %u.\n", pid);
+	}
+	return 40;
 }

@@ -7,6 +7,7 @@
 class AddressSpace
 {
 	public:
+			AddressSpace();
 			~AddressSpace();
 			void activate();
 			AddressSpace* fork();
@@ -19,7 +20,6 @@ class AddressSpace
 			void unmapMemory(vaddr_t virtualAddress, size_t size);
 			void unmapPhysical(vaddr_t firstVirtualAddress, size_t size);
 	private:
-			AddressSpace();
 			bool isFree(size_t pdIndex, size_t ptIndex);
 			vaddr_t map(paddr_t physicalAddress, int protection);
 			vaddr_t mapAt(vaddr_t virtualAddress, paddr_t physicalAddress, int protection);

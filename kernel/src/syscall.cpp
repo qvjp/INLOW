@@ -12,6 +12,7 @@ static const void* syscallList[NUM_SYSCALLS] = {
 	(void*) Syscall::munmap,
 	(void*) Syscall::openat,
 	(void*) Syscall::close,
+	(void*) Syscall::regfork,
 };
 
 extern "C" const void* getSyscallHandler(unsigned interruptNumber)
@@ -69,6 +70,17 @@ ssize_t Syscall::read(int fd, void* buffer, size_t size)
 	return descr->read(buffer, size);
 }
 
+pid_t Syscall::regfork(int flags, struct regfork* registers)
+{
+	if (!((flags & RFPROC) && (flags & RFFDG)))
+	{
+		errno = EINVAL;
+		return -1;
+	}
+
+	Process* newProcess = Process::current->regfork(flags, registers);
+	return newProcess->pid;
+}
 ssize_t Syscall::write(int fd, const void* buffer, size_t size)
 {
 	FileDescription* descr = Process::current->fd[fd];

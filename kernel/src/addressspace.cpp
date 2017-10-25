@@ -50,9 +50,27 @@ static inline int protectionToFlags(int protection)
 
 AddressSpace::AddressSpace()
 {
-	pageDir = 0;
-	firstSegment = nullptr;
-	next = nullptr;
+	if (this == &_kernelSpace)
+	{
+		pageDir = 0;
+		firstSegment = nullptr;
+		next = nullptr;
+	}
+	else
+	{
+		pageDir = PhysicalMemory::popPageFrame();
+
+		vaddr_t kernelPageDir = (RECURSIVE_MAPPING + 0x3FF000);
+		vaddr_t newPageDir = kernelSpace->map(pageDir, PROT_WRITE);
+		memcpy((void*) newPageDir, (const void*) kernelPageDir, 0x1000);
+		kernelSpace->unmap(newPageDir);
+
+		firstSegment = new MemorySegment(0, 0x1000, PROT_NONE | SEG_NOUNMAP, nullptr, nullptr);
+		MemorySegment::addSegment(firstSegment, 0xC0000000, -0xC0000000, PROT_NONE | SEG_NOUNMAP);
+
+		next = firstAddressSpace;
+		firstAddressSpace = this;
+	}
 }
 
 AddressSpace::~AddressSpace()
@@ -103,22 +121,23 @@ void AddressSpace::activate()
 AddressSpace* AddressSpace::fork()
 {
 	AddressSpace* result = new AddressSpace();
-	result->pageDir = PhysicalMemory::popPageFrame();
 
-	vaddr_t currentPageDir = kernelSpace->map(pageDir, PROT_READ);
-	vaddr_t newPageDir = kernelSpace->map(result->pageDir,PROT_WRITE);
+	MemorySegment* segment = firstSegment->next;
+	while (segment)
+	{
+		if (!(segment->flags & SEG_NOUNMAP))
+		{
+			size_t size = segment->size;
 
-	memcpy((void*) newPageDir, (const void*) currentPageDir, 0x1000);
-	
-	kernelSpace->unmap(currentPageDir);
-	kernelSpace->unmap(newPageDir);
-
-	result->firstSegment = new MemorySegment(0, 0x1000, PROT_NONE | SEG_NOUNMAP, nullptr, nullptr);
-	MemorySegment::addSegment(result->firstSegment, 0xC0000000, -0xC0000000, PROT_NONE | SEG_NOUNMAP);
-
-	result->next = firstAddressSpace;
-	firstAddressSpace = result;
-
+			result->mapMemory(segment->address, size, segment->flags);
+			vaddr_t source = kernelSpace->mapFromOtherAddressSpace(this, segment->address, size, PROT_READ);
+			vaddr_t dest = kernelSpace->mapFromOtherAddressSpace(result, segment->address, size, PROT_WRITE);
+			memcpy((void*) dest, (const void*) source, size);
+			kernelSpace->unmapPhysical(source, size);
+			kernelSpace->unmapPhysical(dest, size);
+		}
+		segment = segment->next;
+	}
 	return result;
 }
 
