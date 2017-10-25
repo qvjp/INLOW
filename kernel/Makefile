@@ -33,6 +33,7 @@ OBJ := addressspace.o \
 		kernel.o \
 		keyboard.o \
 		print.o \
+		memorysegment.o \
 		physicalmemory.o \
 		process.o \
 		ps2.o \
