@@ -15,7 +15,6 @@ class Process
 			InterruptContext* interruptContext;
 			Process* prev;
 			Process* next;
-			void* stack;
 			void* kernelStack;
 
 	public:

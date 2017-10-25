@@ -3,6 +3,8 @@
 
 #include <inlow/kernel/kernel.h>
 
+#define SEG_NOUNMAP (1 << 16)
+
 class MemorySegment
 {
 	public:
