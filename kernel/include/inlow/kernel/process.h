@@ -13,10 +13,12 @@ class Process
 {
 	public:
 			Process();
+			~Process();
 			void exit(int status);
 			Process* regfork(int flags, struct regfork* registers);
 			int execute(FileDescription* descr, char* const argv[], char* const envp[]);
 			int registerFileDescriptor(FileDescription* descr);
+			Process* waitpid(pid_t pid, int flags);
 	private:
 			uintptr_t loadELF(uintptr_t elf);
 	private:
@@ -26,6 +28,10 @@ class Process
 			void* kernelStack;
 			bool contextChanged;
 			bool fdInitialized;
+			bool terminated;
+			Process* parent;
+			Process** children;
+			size_t numChildren;
 
 	public:
 			AddressSpace* addressSpace;
@@ -33,6 +39,7 @@ class Process
 			FileDescription* rootFd;
 			FileDescription* cwdFd;
 			pid_t pid;
+			int status;
 	public:
 			static void addProcess(Process* process);
 			static void initialize(FileDescription* rootFd);

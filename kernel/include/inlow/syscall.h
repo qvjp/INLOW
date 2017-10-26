@@ -10,7 +10,8 @@
 #define SYSCALL_CLOSE 6
 #define SYSCALL_REGFORK 7
 #define SYSCALL_EXECVE 8
+#define SYSCALL_WAITPID 9
 
-#define NUM_SYSCALLS 9 
+#define NUM_SYSCALLS 10 
 
 #endif

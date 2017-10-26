@@ -18,7 +18,7 @@ static void changeChunkSize(Chunk* chunk, ssize_t sizeDiff)
 	newNextChunk->size -= sizeDiff;
 }
 
-void*  realloc(void* addr, size_t size)
+void* realloc(void* addr, size_t size)
 {
 	if (addr == NULL)
 			return malloc(size);
@@ -42,7 +42,7 @@ void*  realloc(void* addr, size_t size)
 		return addr;
 	}
 
-	if (next->magic = MAGIC_FREE_CHUNK)
+	if (next->magic == MAGIC_FREE_CHUNK)
 	{
 		if ((sizeDiff > 0 && next->size > sizeDiff + sizeof(Chunk)) || sizeDiff < 0)
 		{
