@@ -1,3 +1,4 @@
+#include <errno.h>
 #include <stdalign.h>
 #include <stddef.h>
 #include "malloc.h"
@@ -6,13 +7,11 @@ void* malloc(size_t size)
 {
 	if (size == 0)
 			size = 1;
-	size_t chunksSize = sizeof(Chunk);
 	size = alignUp(size, alignof(max_align_t));
-	size_t totalSize = chunksSize + size;
 
 	__lockHeap();
 
-	Chunk* currentBigChunk = firstBigChunk;
+	Chunk* currentBigChunk = __firstBigChunk;
 	Chunk* currentChunk = currentBigChunk + 1;
 
 	while (1)
@@ -20,9 +19,9 @@ void* malloc(size_t size)
 		switch (currentChunk->magic)
 		{
 			case MAGIC_FREE_CHUNK:
-					if (currentChunk->size >= totalSize)
+					if (currentChunk->size >= size)
 					{
-						if(currentChunk->size > totalSize + chunksSize)
+						if(currentChunk->size > size + sizeof(Chunk))
 						{
 							__splitChunk(currentChunk, size);
 						}
@@ -46,11 +45,12 @@ void* malloc(size_t size)
 					}
 					else
 					{
-						currentBigChunk = __allocateBigChunk(currentBigChunk, totalSize);
+						currentBigChunk = __allocateBigChunk(currentBigChunk, size);
 						currentChunk = currentBigChunk + 1;
 						if(! currentBigChunk)
 						{
 							__unlockHeap();
+							errno = ENOMEM;
 							return NULL;
 						}
 					}
