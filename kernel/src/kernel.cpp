@@ -31,7 +31,7 @@ extern "C" void kernel_main(uint32_t, paddr_t multibootAddress)
 		Print::printf("Initrd loaded\n");
 		
 		Process::initialize(rootFd);
-		FileVnode* program = (FileVnode*) rootDir->openat("/bin/test", 0, 0);
+		FileVnode* program = (FileVnode*) rootDir->openat("/bin/sh", 0, 0);
 		if (program)
 		{
 				Process* newProcess = new Process();
