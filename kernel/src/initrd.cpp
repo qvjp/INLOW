@@ -29,7 +29,7 @@ struct TarHeader
 
 DirectoryVnode* Initrd::loadInitrd(vaddr_t initrd)
 {
-		DirectoryVnode* root = new DirectoryVnode(nullptr);
+		DirectoryVnode* root = new DirectoryVnode(nullptr, 0755);
 		TarHeader* header = (TarHeader*) initrd;
 
 		while (strcmp(header->magic, TMAGIC) == 0)
@@ -55,14 +55,15 @@ DirectoryVnode* Initrd::loadInitrd(vaddr_t initrd)
 						return root;
 				}
 				Vnode* newFile;
+				mode_t mode = (mode_t) strtol(header->mode, nullptr, 8);
 				if (header->typeflag == REGTYPE || header->typeflag == AREGTYPE)
 				{
-						newFile = new FileVnode(header + 1, size);
+						newFile = new FileVnode(header + 1, size, mode);
 						header += 1 + ALIGNUP(size, 512) / 512;
 				}
 				else if (header->typeflag == DIRTYPE)
 				{
-						newFile = new DirectoryVnode(directory);
+						newFile = new DirectoryVnode(directory, mode);
 						header++;
 				}
 				else

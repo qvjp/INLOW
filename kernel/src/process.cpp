@@ -2,6 +2,7 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <inlow/kernel/elf.h>
 #include <inlow/kernel/file.h>
 #include <inlow/kernel/print.h>
@@ -112,6 +113,13 @@ int Process::copyArguments(char* const argv[], char* const envp[], char**& newAr
 uintptr_t Process::loadELF(uintptr_t elf)
 {
 	ELFHeader* header = (ELFHeader*)elf;
+
+	if (memcmp(header->e_ident, "\x7F""ELF", 4) != 0)
+	{
+		errno = ENOEXEC;
+		return 0;
+	}
+
 	ProgramHeader* programHeader = (ProgramHeader*) (elf + header->e_phoff);
 
 	addressSpace = new AddressSpace();
@@ -170,9 +178,17 @@ InterruptContext* Process::schedule(InterruptContext* context)
 int Process::execute(FileDescription* descr, char* const argv[], char* const envp[])
 {
 	AddressSpace* oldAddressSpace = addressSpace;
+	if (!S_ISREG(descr->vnode->mode))
+	{
+		errno = EACCES;
+		return -1;
+	}
+
 	// load the program
 	FileVnode* file = (FileVnode*) descr->vnode;
 	uintptr_t entry = loadELF((uintptr_t) file->data);
+	if (!entry)
+			return -1;
 
 	vaddr_t stack = addressSpace->mapMemory(0x1000, PROT_READ | PROT_WRITE);
 	kernelStack = (void*) kernelSpace->mapMemory(0x1000, PROT_READ | PROT_WRITE);

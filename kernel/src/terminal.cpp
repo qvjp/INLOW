@@ -1,3 +1,4 @@
+#include <inlow/stat.h>
 #include <inlow/kernel/terminal.h>
 Terminal terminal;
 
@@ -7,7 +8,7 @@ static int cursorPosY = 0;
 
 static void printCharacter(char c);
 
-Terminal::Terminal()
+Terminal::Terminal() : Vnode(S_IFCHR)
 {
 	readIndex = 0;
 	writeIndex = 0;

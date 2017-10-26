@@ -1,8 +1,9 @@
 #include <errno.h>
 #include <string.h>
+#include <inlow/stat.h>
 #include <inlow/kernel/directory.h>
 
-DirectoryVnode::DirectoryVnode(DirectoryVnode* parent)
+DirectoryVnode::DirectoryVnode(DirectoryVnode* parent, mode_t mode) : Vnode(S_IFDIR | mode)
 {
 	childCount = 0;
 	childNodes = nullptr;
@@ -37,7 +38,7 @@ Vnode* DirectoryVnode::openat(const char* path, int flags, mode_t mode)
 
 	if (strncmp(path, ".", length) == 0)
 			return openat(path + length, flags, mode);
-	else if (length == 2 && strncmp(path, "..", length) == 0)
+	else if (length == 2 && strncmp(path, "..", length) == 0 && parent)
 			return parent->openat(path + length, flags, mode);
 
 	for (size_t i = 0; i < childCount; i++)

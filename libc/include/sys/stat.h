@@ -11,6 +11,7 @@
 #define __need_off_t
 #define __need_time_t
 #include <sys/libc-types.h>
+#include <inlow/stat.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -31,6 +32,17 @@ extern "C"
 #define S_IXOTH 01
 #define S_ISUID 04000
 #define S_ISGID 02000
+
+#define S_ISBLK(mode) (((mode) & S_IFMT) == S_IFBLK)
+#define S_ISCHR(mode) (((mode) & S_IFMt) == S_IFCHR)
+#define S_ISDIR(mode) (((mode) & S_IFMT) == S_IFDIR)
+#define S_ISFIFO(mode) (((mode) & S_IFMT) == S_IFIFO)
+#define S_ISREG(mode) (((mode) & S_IFMT) == S_IFREG)
+#define S_ISLNK(mode) (((mode) & S_IFMT) == S_IFLNK)
+#define S_ISSOCK(mode) (((mode) & S_IFMt) == S_ifSOCK)
+
+		int fstatat(int, const char* __restrict, struct stat* __restrict, int);
+		int stat(const char* __restrict, struct stat* __restrict);
 
 #ifdef __cplusplus
 }
