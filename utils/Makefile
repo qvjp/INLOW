@@ -10,9 +10,10 @@ CFLAGS += --sysroot=$(SYSROOT) -Wall -Wextra
 CPPFLAGS += -D_INLOW_SOURCE
 
 PROGRAMS = \
+		   echo \
+		   false \
 		   sh \
-		   test \
-		   test2
+		   true
 
 all: $(addprefix $(BUILD)/, $(PROGRAMS))
 
