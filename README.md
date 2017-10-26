@@ -1,6 +1,6 @@
 ## INLOW
 
-INLOW is a small unix-like operating system. It includes monolithic kernel writen in C++, a standard C library and userspace written in C
+INLOW is a small unix-like operating system. It includes monolithic kernel written in C++, a standard C library and userspace written in C
 
 -----------
 
