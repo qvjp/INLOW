@@ -35,7 +35,8 @@ extern "C" void kernel_main(uint32_t, paddr_t multibootAddress)
 		if (program)
 		{
 				Process* newProcess = new Process();
-				newProcess->execute(new FileDescription(program), nullptr, nullptr);
+				char* args[] = {nullptr};
+				newProcess->execute(new FileDescription(program), args, args);
 				Process::addProcess(newProcess);
 		}
 

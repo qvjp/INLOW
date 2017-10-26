@@ -84,6 +84,7 @@ AddressSpace::~AddressSpace()
 				unmapMemory(currentSegment->address, currentSegment->size);
 		currentSegment = next;
 	}
+	PhysicalMemory::pushPageFrame(pageDir);
 }
 
 static MemorySegment segment1(0, 0xC0000000, PROT_NONE, nullptr, nullptr);

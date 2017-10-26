@@ -20,6 +20,7 @@ class Process
 			int registerFileDescriptor(FileDescription* descr);
 			Process* waitpid(pid_t pid, int flags);
 	private:
+			int copyArguments(char* const argv[], char* const envp[], char**& newArgv, char**& newEnvp);
 			uintptr_t loadELF(uintptr_t elf);
 	private:
 			InterruptContext* interruptContext;

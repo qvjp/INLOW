@@ -16,9 +16,8 @@ int main(int argc, char* argv[])
 	else if (pid == 0)
 	{
 		puts("Executing new process");
-		char* const args[] = { NULL };
-		execv("/bin/test2", args);
-		puts("execv failed!\n");
+		execl("/bin/test2", "test2", "Hello", "I'm Test2", NULL);
+		puts("execl failed!\n");
 	}
 	else
 	{
