@@ -82,6 +82,7 @@ LIBC_OBJ := \
 		stdio/vfprintf \
 		stdlib/_Exit \
 		stdlib/exit \
+		stdlib/getenv \
 		sys/mman/mmap \
 		sys/mman/munmap \
 		sys/stat/fstatat \

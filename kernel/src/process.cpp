@@ -97,7 +97,7 @@ int Process::copyArguments(char* const argv[], char* const envp[], char**& newAr
 
 	for (int i = 0; i< envc; i++)
 	{
-		envpMapped[i] = nextString;
+		envpMapped[i] = nextString - pageMapped + page;
 		nextString = stpcpy(nextString, envp[i]) + 1;
 	}
 

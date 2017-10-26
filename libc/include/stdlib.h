@@ -18,6 +18,7 @@ extern "C" {
 		__noreturn void exit(int);
 
 		void free(void*);
+		char* getenv(const char*);
 		void* malloc(size_t);
 		void* realloc(void*, size_t);
 		long strtol(const char* __restrict, char** __restrict, int);
@@ -28,7 +29,6 @@ extern "C" {
 
 		int atexit(void(*)(void));
 		int atoi(const char*);
-		char* getenv(const char*);
 
 #ifdef __cplusplus
 }
