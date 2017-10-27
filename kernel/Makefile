@@ -35,6 +35,7 @@ OBJ := addressspace.o \
 		print.o \
 		memorysegment.o \
 		physicalmemory.o \
+		pit.o \
 		process.o \
 		ps2.o \
 		ps2keyboard.o \

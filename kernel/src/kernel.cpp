@@ -5,6 +5,7 @@
 #include <inlow/kernel/initrd.h>
 #include <inlow/kernel/print.h>
 #include <inlow/kernel/physicalmemory.h>
+#include <inlow/kernel/pit.h>
 #include <inlow/kernel/process.h>
 #include <inlow/kernel/ps2.h>
 
@@ -46,6 +47,7 @@ extern "C" void kernel_main(uint32_t, paddr_t multibootAddress)
 
 
 		Interrupts::initPic();
+		Pit::initialize();
 		Interrupts::enable();
 		Print::printf("Interrupts enable!\n");
 
