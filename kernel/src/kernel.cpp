@@ -36,7 +36,7 @@ extern "C" void kernel_main(uint32_t, paddr_t multibootAddress)
 		{
 				Process* newProcess = new Process();
 				const char* argv[] = { "/bin/sh", nullptr };
-				const char* envp[] = { "/PATH=/bin", nullptr };
+				const char* envp[] = { "PATH=/bin", nullptr };
 				newProcess->execute(new FileDescription(program), (char**) argv, (char**) envp);
 				Process::addProcess(newProcess);
 		}

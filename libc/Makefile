@@ -37,6 +37,7 @@ COMMON_OBJ := \
 		string/stpcpy \
 		string/strcmp \
 		string/strcpy \
+		string/strchr \
 		string/strcspn \
 		string/strdup \
 		string/strlen \
@@ -88,6 +89,7 @@ LIBC_OBJ := \
 		sys/stat/fstatat \
 		sys/stat/stat \
 		sys/wait/waitpid \
+		unistd/access \
 		unistd/close \
 		unistd/environ \
 		unistd/execl \
