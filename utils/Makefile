@@ -12,6 +12,7 @@ CPPFLAGS += -D_INLOW_SOURCE
 PROGRAMS = \
 		   echo \
 		   false \
+		   ls \
 		   sh \
 		   true
 

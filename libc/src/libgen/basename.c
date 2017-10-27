@@ -10,7 +10,7 @@ char* basename(char* path)
 
 	size_t size = strlen(path);
 	while (path[size - 1] == '/')
-			path[--size] = '0';
+			path[--size] = '\0';
 
 	if (!*path)
 	{

@@ -12,7 +12,8 @@
 #define SYSCALL_EXECVE 8
 #define SYSCALL_WAITPID 9
 #define SYSCALL_FSTATAT 10
+#define SYSCALL_READDIR 11
 
-#define NUM_SYSCALLS 11
+#define NUM_SYSCALLS 12
 
 #endif
