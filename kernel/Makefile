@@ -13,15 +13,15 @@ CPPPARAMETER += -D__is_inlow_kernel -D_INLOW_SOURCE
 LDPARAMETER += --sysroot=$(SYSROOT) -T linker.ld -ffreestanding -nostdlib
 LIBS += -lk -lgcc
 
-CRTI_0 := $(shell $(CXX) $(CXXPARAMETER) -print-file-name=crti.o)
-CRTBEGIN_0 := $(shell $(CPP) $(CPPPARAMETER) -print-file-name=crtbegin.o)
-CRTEND_0 := $(shell $(CPP) $(CPPPARAMETER) -print-file-name=crtend.o)
-CRTN_0 := $(shell $(CXX) $(CXXPARAMETER) -print-file-name=crtn.o)
+CRTI_0 = $(shell $(CXX) $(CXXPARAMETER) -print-file-name=crti.o)
+CRTBEGIN_0 = $(shell $(CPP) $(CPPPARAMETER) -print-file-name=crtbegin.o)
+CRTEND_0 = $(shell $(CPP) $(CPPPARAMETER) -print-file-name=crtend.o)
+CRTN_0 = $(shell $(CXX) $(CXXPARAMETER) -print-file-name=crtn.o)
 
-START_OBJ := $(CRTI_0) $(CRTBEGIN_0)
-END_OBJ := $(CRTEND_0) $(CRTN_0) 
+START_OBJ = $(CRTI_0) $(CRTBEGIN_0)
+END_OBJ = $(CRTEND_0) $(CRTN_0) 
 
-OBJ := addressspace.o \
+OBJ = addressspace.o \
 		assert.o \
 		directory.o \
 		file.o \
@@ -59,6 +59,7 @@ OBJ := $(START_OBJ) $(OBJ) $(END_OBJ)
 install-headers:
 	@mkdir -p $(INCLUDE_DIR)
 	cp -rf include/. $(INCLUDE_DIR)
+	touch $(SYSROOT)
 
 $(BUILD)/kernel: $(OBJ)
 	$(CXX) $(LDPARAMETER) -o $(BUILD)/kernel.elf $^ $(LIBS)
