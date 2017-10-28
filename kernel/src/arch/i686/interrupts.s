@@ -27,6 +27,7 @@ commonHandler:
 	# Switch to kernel data segment
 	mov $0x10, %ax
 	mov %ax, %ds
+	mov %ax, %es
 
 	mov %esp, %eax
 	and $(~0xFF), %esp
@@ -39,6 +40,7 @@ commonHandler:
 	# Switch back to user data segment
 	mov $0x23, %ax
 	mov %ax, %ds
+	mov %ax, %es
 
 	pop %eax
 	pop %ebx

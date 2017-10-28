@@ -17,6 +17,7 @@ syscallHandler:
 
 	mov $0x10, %cx
 	mov %cx, %ds
+	mov %cx, %es
 
 	call getSyscallHandler
 	add $16, %esp
@@ -25,6 +26,7 @@ syscallHandler:
 
 	mov $0x23, %cx
 	mov %cx, %ds
+	mov %cx, %es
 
 	mov %ebp, %esp
 	iret
