@@ -41,6 +41,7 @@ OBJ := addressspace.o \
 		ps2keyboard.o \
 		syscall.o \
 		terminal.o \
+		timer.o \
 		vnode.o
 		
 OBJ += arch/i686/interrupts.o \

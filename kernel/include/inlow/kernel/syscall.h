@@ -4,6 +4,7 @@
 #include <sys/types.h>
 #include <inlow/fork.h>
 #include <inlow/syscall.h>
+#include <inlow/timespec.h>
 #include <inlow/kernel/kernel.h>
 
 struct __mmapRequest;
@@ -16,6 +17,7 @@ namespace Syscall
 	int fstatat(int fd, const char* restrict path, struct stat* restrict result, int flags);
 	void* mmap(__mmapRequest* request);
 	int munmap(void* addr, size_t size);
+	int nanosleep(const struct timespec* requested, struct timespec* remaining);
 	int openat(int fd, const char* path, int flags, mode_t mode);
 	ssize_t read(int fd, void* buffer, size_t size);
 	ssize_t readdir(int fd, unsigned long offset, void* buffer, size_t size);

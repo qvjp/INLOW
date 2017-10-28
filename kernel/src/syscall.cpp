@@ -17,6 +17,7 @@ static const void* syscallList[NUM_SYSCALLS] = {
 	(void*) Syscall::waitpid,
 	(void*) Syscall::fstatat,
 	(void*) Syscall::readdir,
+	(void*) Syscall::nanosleep,
 };
 
 static FileDescription* getRootFd(int fd, const char* restrict path)
