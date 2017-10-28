@@ -1,14 +1,15 @@
 ARCH ?= i686
 REPO_ROOT = ..
 
-include ../build-config/config.mk
+include $(REPO_ROOT)/build-config/config.mk
+include $(REPO_ROOT)/build-config/version.mk
 
 BUILD = ../build/$(ARCH)/kernel
 
 CXXPARAMETER ?= -O2 -g
 CXXPARAMETER += --sysroot=$(SYSROOT) -std=gnu++14 -ffreestanding -fno-exceptions
 CXXPARAMETER += -fno-rtti -Wall -Wextra
-CPPPARAMETER += -I include
+CPPPARAMETER += -I include -DINLOW_VERSION=\"$(VERSION)\"
 CPPPARAMETER += -D__is_inlow_kernel -D_INLOW_SOURCE
 LDPARAMETER += --sysroot=$(SYSROOT) -T linker.ld -ffreestanding -nostdlib
 LIBS += -lk -lgcc
