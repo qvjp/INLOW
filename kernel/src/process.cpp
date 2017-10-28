@@ -63,7 +63,7 @@ void Process::addProcess(Process* process)
 	firstProcess = process;
 }
 
-int Process::copyArguments(char* const argv[], char* const envp[], char**& newArgv, char**& newEnvp)
+int Process::copyArguments(char* const argv[], char* const envp[], char**& newArgv, char**& newEnvp, AddressSpace* newAddressSpace)
 {
 	int argc;
 	int envc;
@@ -82,8 +82,8 @@ int Process::copyArguments(char* const argv[], char* const envp[], char**& newAr
 	stringSizes = ALIGNUP(stringSizes, alignof(char*));
 	
 	size_t size = ALIGNUP(stringSizes + (argc + envc + 2) * sizeof(char*), 0x1000);
-	vaddr_t page = addressSpace->mapMemory(size, PROT_READ | PROT_WRITE);
-	vaddr_t pageMapped = kernelSpace->mapFromOtherAddressSpace(addressSpace, page, size, PROT_WRITE);
+	vaddr_t page = newAddressSpace->mapMemory(size, PROT_READ | PROT_WRITE);
+	vaddr_t pageMapped = kernelSpace->mapFromOtherAddressSpace(newAddressSpace, page, size, PROT_WRITE);
 
 	char* nextString = (char*) pageMapped;
 	char** argvMapped = (char**) (pageMapped + stringSizes);
@@ -110,7 +110,7 @@ int Process::copyArguments(char* const argv[], char* const envp[], char**& newAr
 	return argc;
 }
 
-uintptr_t Process::loadELF(uintptr_t elf)
+uintptr_t Process::loadELF(uintptr_t elf, AddressSpace* newAddressSpace)
 {
 	ELFHeader* header = (ELFHeader*)elf;
 
@@ -122,8 +122,6 @@ uintptr_t Process::loadELF(uintptr_t elf)
 
 	ProgramHeader* programHeader = (ProgramHeader*) (elf + header->e_phoff);
 
-	addressSpace = new AddressSpace();
-
 	for (size_t i = 0; i < header->e_phnum; i++)
 	{
 		if (programHeader[i].p_type != PT_LOAD)
@@ -134,8 +132,8 @@ uintptr_t Process::loadELF(uintptr_t elf)
 		const void* src = (void*) (elf + programHeader[i].p_offset);
 
 		size_t size = ALIGNUP(programHeader[i].p_memsz + offset, 0x1000);
-		addressSpace->mapMemory(loadAddressAligned, size, PROT_READ | PROT_WRITE | PROT_EXEC);
-		vaddr_t dest = kernelSpace->mapFromOtherAddressSpace(addressSpace, loadAddressAligned, size, PROT_WRITE);
+		newAddressSpace->mapMemory(loadAddressAligned, size, PROT_READ | PROT_WRITE | PROT_EXEC);
+		vaddr_t dest = kernelSpace->mapFromOtherAddressSpace(newAddressSpace, loadAddressAligned, size, PROT_WRITE);
 		memset((void*) (dest + offset), 0 ,programHeader[i].p_memsz);
 		memcpy((void*) (dest + offset), src, programHeader[i].p_filesz);
 		kernelSpace->unmapPhysical(dest, size);
@@ -177,7 +175,6 @@ InterruptContext* Process::schedule(InterruptContext* context)
 
 int Process::execute(FileDescription* descr, char* const argv[], char* const envp[])
 {
-	AddressSpace* oldAddressSpace = addressSpace;
 	if (!S_ISREG(descr->vnode->mode))
 	{
 		errno = EACCES;
@@ -186,29 +183,30 @@ int Process::execute(FileDescription* descr, char* const argv[], char* const env
 
 	// load the program
 	FileVnode* file = (FileVnode*) descr->vnode;
-	uintptr_t entry = loadELF((uintptr_t) file->data);
+	AddressSpace* newAddressSpace = new AddressSpace();
+	uintptr_t entry = loadELF((uintptr_t) file->data, newAddressSpace);
 	if (!entry)
 			return -1;
 
-	vaddr_t stack = addressSpace->mapMemory(0x1000, PROT_READ | PROT_WRITE);
+	vaddr_t stack = newAddressSpace->mapMemory(0x1000, PROT_READ | PROT_WRITE);
 	kernelStack = (void*) kernelSpace->mapMemory(0x1000, PROT_READ | PROT_WRITE);
 
-	interruptContext = (InterruptContext*) ((uintptr_t)kernelStack + 0x1000 - sizeof(InterruptContext));
+	InterruptContext* newInterruptContext  = (InterruptContext*) ((uintptr_t)kernelStack + 0x1000 - sizeof(InterruptContext));
 
-	memset(interruptContext, 0, sizeof(InterruptContext));
+	memset(newInterruptContext, 0, sizeof(InterruptContext));
 
 	char** newArgv;
 	char** newEnvp;
-	int argc = copyArguments(argv, envp, newArgv, newEnvp);
+	int argc = copyArguments(argv, envp, newArgv, newEnvp, newAddressSpace);
 
-	interruptContext->eax = argc;
-	interruptContext->ebx = (uint32_t) newArgv;
-	interruptContext->ecx = (uint32_t) newEnvp;
-	interruptContext->eip = (uint32_t) entry;
-	interruptContext->cs = 0x1B;
-	interruptContext->eflags = 0x200;
-	interruptContext->esp = (uint32_t) stack + 0x1000;
-	interruptContext->ss = 0x23;
+	newInterruptContext->eax = argc;
+	newInterruptContext->ebx = (uint32_t) newArgv;
+	newInterruptContext->ecx = (uint32_t) newEnvp;
+	newInterruptContext->eip = (uint32_t) entry;
+	newInterruptContext->cs = 0x1B;
+	newInterruptContext->eflags = 0x200;
+	newInterruptContext->esp = (uint32_t) stack + 0x1000;
+	newInterruptContext->ss = 0x23;
 
 	if (!fdInitialized)
 	{
@@ -227,14 +225,19 @@ int Process::execute(FileDescription* descr, char* const argv[], char* const env
 		contextChanged = true;
 		kernelSpace->activate();
 	}
-	if (oldAddressSpace)
-			delete oldAddressSpace;
+	if (addressSpace)
+			delete addressSpace;
+	addressSpace = newAddressSpace;
+	interruptContext = newInterruptContext;
+	if (this == current)
+			Interrupts::enable();
 
 	return 0;
 }
 
 void Process::exit(int status)
 {
+	Interrupts::disable();
 	if (next)
 	{
 		next->prev = prev;
@@ -256,6 +259,7 @@ void Process::exit(int status)
 	delete cwdFd;
 	terminated = true;
 	this->status = status;
+	Interrupts::enable();
 }
 
 Process* Process::regfork(int, struct regfork* registers)

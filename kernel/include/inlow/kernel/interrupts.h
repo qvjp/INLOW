@@ -28,6 +28,7 @@ struct InterruptContext
 namespace Interrupts
 {
 	extern void (*irqHandlers[])(int);
+	void disable();
 	void enable();
 	void initPic();
 }
