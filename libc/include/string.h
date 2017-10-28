@@ -22,6 +22,7 @@ extern "C"
 		size_t strlen(const char*);
 		int strncmp(const char*, const char*, size_t);
 		char* strrchr(const char*, int);
+		size_t strspn(const char*, const char*);
 		char* strtok(char* __restrict, const char* __restrict);
 
 #if __USE_INLOW || __USE_POSIX

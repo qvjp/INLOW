@@ -41,7 +41,8 @@ int main(int argc, char* argv[])
 		}
 		arguments[argumentCount] = NULL;
 
-		executeCommand(arguments);
+		if (arguments[0])
+			executeCommand(arguments);
 		free(arguments);
 	}
 }

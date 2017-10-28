@@ -2,7 +2,7 @@
 
 static char* next = NULL;
 
-char* strtok(char* restrict str, const char* restrict seperators)
+char* strtok(char* restrict str, const char* restrict separators)
 {
 	if (!str)
 	{
@@ -10,7 +10,10 @@ char* strtok(char* restrict str, const char* restrict seperators)
 		if (!str)
 				return NULL;
 	}
-	size_t tokenEnd = strcspn(str, seperators);
+	str = str + strspn(str, separators);
+	if (!*str)
+			return NULL;
+	size_t tokenEnd = strcspn(str, separators);
 	if (str[tokenEnd] == '\0')
 	{
 		next = NULL;
