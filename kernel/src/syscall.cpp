@@ -18,6 +18,8 @@ static const void* syscallList[NUM_SYSCALLS] = {
 	(void*) Syscall::fstatat,
 	(void*) Syscall::readdir,
 	(void*) Syscall::nanosleep,
+	(void*) Syscall::tcgetattr,
+	(void*) Syscall::tcsetattr,
 };
 
 static FileDescription* getRootFd(int fd, const char* restrict path)
@@ -116,6 +118,18 @@ pid_t Syscall::regfork(int flags, struct regfork* registers)
 
 	Process* newProcess = Process::current->regfork(flags, registers);
 	return newProcess->pid;
+}
+
+int Syscall::tcgetattr(int fd, struct termios* result)
+{
+	FileDescription * descr = Process::current->fd[fd];
+	return descr->tcgetattr(result);
+}
+
+int Syscall::tcsetattr(int fd, int flags, const struct termios* termio)
+{
+	FileDescription* descr = Process::current->fd[fd];
+	return descr->tcsetattr(flags, termio);
 }
 
 pid_t Syscall::waitpid(pid_t pid, int* status, int flags)

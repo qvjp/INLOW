@@ -94,6 +94,8 @@ LIBC_OBJ = \
 		sys/stat/fstatat \
 		sys/stat/stat \
 		sys/wait/waitpid \
+		termios/tcgetattr \
+		termios/tcsetattr \
 		time/nanosleep \
 		unistd/access \
 		unistd/close \

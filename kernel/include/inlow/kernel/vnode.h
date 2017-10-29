@@ -13,6 +13,8 @@ class Vnode
 			virtual ssize_t read(void* buffer, size_t size);
 			virtual ssize_t readdir(unsigned long offset, void* buffer, size_t size);
 			virtual int stat(struct stat* result);
+			virtual int tcgetattr(struct termios* result);
+			virtual int tcsetattr(int flags, const struct termios* termio);
 			virtual ssize_t write(const void* buffer, size_t size);
 			virtual ~Vnode(){}
 	protected:
