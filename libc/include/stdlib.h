@@ -13,6 +13,7 @@ extern "C" {
 #define EXIT_FAILURE 1
 #define EXIT_SUCCESS 0
 
+		int atexit(void (*) (void));
 		void* calloc(size_t, size_t);
 		__noreturn void _Exit(int);
 		__noreturn void exit(int);
@@ -27,7 +28,6 @@ extern "C" {
 
 		__noreturn void abort(void);
 
-		int atexit(void(*)(void));
 		int atoi(const char*);
 
 #ifdef __cplusplus

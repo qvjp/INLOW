@@ -86,6 +86,7 @@ LIBC_OBJ = \
 		stdio/stdout \
 		stdio/vfprintf_unlocked \
 		stdio/vfprintf \
+		stdlib/atexit \
 		stdlib/_Exit \
 		stdlib/exit \
 		stdlib/getenv \
