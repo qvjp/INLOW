@@ -1,3 +1,4 @@
+#include <string.h>
 #include <inlow/stat.h>
 #include <inlow/kernel/kernel.h>
 #include <inlow/kernel/terminal.h>
@@ -83,6 +84,13 @@ ssize_t Terminal::write(const void* buffer, size_t size)
 }
 static void printCharacter(char c)
 {
+	if (c == '\0')
+	{
+		cursorPosX = 0;
+		cursorPosY = 0;
+		memset(video, 0, 2 * 25 * 80);
+		return;
+	}
 	if (c == '\n' || cursorPosX > 79)
 	{
 		cursorPosX = 0;
@@ -90,14 +98,8 @@ static void printCharacter(char c)
 
 		if (cursorPosY > 24)
 		{
-			for (size_t i = 0; i < 2 * 24 * 80; i++)
-			{
-				video[i] = video[i + 2 * 80];
-			}
-			for (size_t i = 2 * 24 * 80; i < 2* 25 * 80; i++)
-			{
-				video[i]  = 0;
-			}
+			memmove(video, video + 2 * 80, 2* 24 * 80);
+			memset(video + 2 * 24 * 80, 0, 2 * 80);
 			cursorPosY = 24;
 		}
 		if (c == '\n')

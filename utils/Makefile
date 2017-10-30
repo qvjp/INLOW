@@ -15,6 +15,7 @@ PROGRAMS = \
 		   ls \
 		   sh \
 		   sleep \
+		   snake \
 		   true
 
 all: $(addprefix $(BUILD)/, $(PROGRAMS))
