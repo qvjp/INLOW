@@ -16,7 +16,8 @@ PROGRAMS = \
 		   sh \
 		   sleep \
 		   snake \
-		   true
+		   true \
+		   version
 
 all: $(addprefix $(BUILD)/, $(PROGRAMS))
 
