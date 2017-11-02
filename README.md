@@ -1,5 +1,7 @@
 ## INLOW
 
+[![Build Status](https://travis-ci.org/qvjp/INLOW.svg?branch=master)](https://travis-ci.org/qvjp/INLOW)
+
 INLOW is a small unix-like operating system. It includes monolithic kernel written in C++, a standard C library and userspace written in C
 
 -----------
