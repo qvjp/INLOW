@@ -1,4 +1,5 @@
 #include <errno.h>
+#include <sys/stat.h>
 #include <inlow/fcntl.h>
 #include <inlow/kernel/print.h>
 #include <inlow/kernel/process.h>
@@ -20,9 +21,10 @@ static const void* syscallList[NUM_SYSCALLS] = {
 	(void*) Syscall::nanosleep,
 	(void*) Syscall::tcgetattr,
 	(void*) Syscall::tcsetattr,
+	(void*) Syscall::fchdirat,
 };
 
-static FileDescription* getRootFd(int fd, const char* restrict path)
+static FileDescription* getRootFd(int fd, const char* path)
 {
 	if (path[0] == '/')
 			return Process::current->rootFd;
@@ -77,6 +79,23 @@ NORETURN void Syscall::exit(int status)
 	Process::current->exit(status);
 	asm volatile ("int $0x31");
 	__builtin_unreachable();
+}
+
+int Syscall::fchdirat(int fd, const char* path)
+{
+	FileDescription* descr = getRootFd(fd, path);
+	FileDescription* newCwd = descr->openat(path, 0, 0);
+	if (!newCwd)
+			return -1;
+	if (!S_ISDIR(newCwd->vnode->mode))
+	{
+		errno = ENOTDIR;
+		return -1;
+	}
+
+	delete Process::current->cwdFd;
+	Process::current->cwdFd = newCwd;
+	return 0;
 }
 
 int Syscall::fstatat(int fd, const char* restrict path, struct stat* restrict result, int)

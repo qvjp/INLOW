@@ -27,6 +27,7 @@ extern "C"
 
 		int access(const char*, int);
 		int close(int);
+		int chdir(const char*);
 		int execl(const char*, const char*, ...);
 		int execv(const char*, char* const[]);
 		int execve(const char*, char* const[], char* const[]);
@@ -37,6 +38,7 @@ extern "C"
 		ssize_t write(int, const void*, size_t);
 
 #if __USE_INLOW
+		int fchdirat(int, const char*);
 		pid_t rfork(int);
 		pid_t regfork(int, struct regfork*);
 #endif
