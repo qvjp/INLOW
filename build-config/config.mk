@@ -1,8 +1,17 @@
 ARCH := i686
 BUILD_DIR = $(REPO_ROOT)/build/$(ARCH)
+
+ifneq ($(filter default undefined, $(origin CXX)),)
 CXX = $(ARCH)-inlow-g++
+endif
+
+ifneq ($(filter default undefined, $(origin CC)),)
 CC = $(ARCH)-inlow-gcc
+endif
+
+ifneq ($(filter default undefined, $(origin AR)),)
 AR = $(ARCH)-inlow-ar
+endif
 MKRESCUE ?= grub-mkrescue
 
 ISO ?= INLOW.iso

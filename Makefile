@@ -17,6 +17,9 @@ install-headers:
 install-libc:
 	$(MAKE) -C libc install-libs
 
+install-toolchain: install-headers
+	SYSROOT=$(SYSROOT) $(REPO_ROOT)/build-config/install-toolchains.sh
+
 install-utils:
 	$(MAKE) -C utils install
 
