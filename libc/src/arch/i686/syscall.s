@@ -20,7 +20,11 @@ __syscall:
 
 	int $0x30
 
-	add $12, %esp
+	test %ecx, %ecx
+	jz 1f
+	mov %ecx, errno
+
+1:  add $12, %esp
 	pop %ebx
 	pop %esi
 	pop %edi
