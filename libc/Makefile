@@ -41,6 +41,7 @@ COMMON_OBJ = \
 		string/strchr \
 		string/strcspn \
 		string/strdup \
+		string/strerror \
 		string/strlen \
 		string/strncmp \
 		string/strrchr \
