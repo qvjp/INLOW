@@ -4,6 +4,11 @@
 #include <sys/cdefs.h>
 #include <inlow/errno.h>
 
+#if __USE_INLOW
+extern char* program_invocation_name;
+extern char* program_invocation_short_name;
+#endif
+
 #ifdef __cplusplus
 extern "C"
 {

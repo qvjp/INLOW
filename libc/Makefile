@@ -55,6 +55,7 @@ LIBC_OBJ = \
 		dirent/fdopendir \
 		dirent/opendir \
 		dirent/readdir \
+		errno/initProgname \
 		fcntl/open \
 		fcntl/openat \
 		stdio/fclose \
