@@ -1,14 +1,8 @@
-#include <string.h>
-#include <inlow/stat.h>
 #include <inlow/kernel/kernel.h>
 #include <inlow/kernel/terminal.h>
+#include <inlow/kernel/vgaterminal.h>
 Terminal terminal;
 
-static char* video = (char*) 0xC0000000;
-static int cursorPosX = 0;
-static int cursorPosY = 0;
-
-static void printCharacter(char c);
 
 Terminal::Terminal() : Vnode(S_IFCHR)
 {
@@ -23,21 +17,14 @@ void Terminal::onKeyboardEvent(int key)
 	{
 		if (terminalBuffer.backspace() && (termio.c_lflag & ECHO))
 		{
-			cursorPosX--;
-			if (cursorPosX < 0)
-			{
-				cursorPosX = 79;
-				cursorPosY--;
-			}
-			video[cursorPosY * 2 * 80 + 2 * cursorPosX] = 0;
-			video[cursorPosY * 2 * 80 + 2 * cursorPosX + 1] = 0;
+			VgaTerminal::backspace();
 		}
 	}
 	else if (c)
 	{
 		if (termio.c_lflag & ECHO)
 		{
-			printCharacter(c);
+				VgaTerminal::printCharacterRaw(c);
 		}
 		terminalBuffer.write(c, termio.c_lflag & ICANON);
 	}
@@ -78,38 +65,11 @@ ssize_t Terminal::write(const void* buffer, size_t size)
 
 	for (size_t i = 0; i < size; i++)
 	{
-		printCharacter(buf[i]);
+			VgaTerminal::printCharacter(buf[i]);
 	}
 	return (ssize_t) size;
 }
-static void printCharacter(char c)
-{
-	if (c == '\0')
-	{
-		cursorPosX = 0;
-		cursorPosY = 0;
-		memset(video, 0, 2 * 25 * 80);
-		return;
-	}
-	if (c == '\n' || cursorPosX > 79)
-	{
-		cursorPosX = 0;
-		cursorPosY++;
 
-		if (cursorPosY > 24)
-		{
-			memmove(video, video + 2 * 80, 2* 24 * 80);
-			memset(video + 2 * 24 * 80, 0, 2 * 80);
-			cursorPosY = 24;
-		}
-		if (c == '\n')
-				return;
-	}
-	video[cursorPosY * 2 * 80 + 2 * cursorPosX] = c;
-	video[cursorPosY * 2 * 80 + 2 * cursorPosX + 1] = 0x07;
-
-	cursorPosX++;
-}
 TerminalBuffer::TerminalBuffer()
 {
 	reset();

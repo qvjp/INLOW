@@ -45,6 +45,7 @@ int main() {
     KochCurve(n, 4);
     KochCurve(n, 2);
 
+	printf("\e[H\e[2J");
 	printf("\n");
     for (int j = 0; j < h; j++) {
         for (int i = 0; i < w; i++)

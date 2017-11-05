@@ -61,6 +61,10 @@ int main(int argc, char* argv[])
 		#endif
 	}
 
+#ifndef __inlow__
+	setbuf(stdout, NULL);
+#endif
+
 	tcgetattr(0, &oldTermios);
 	atexit(restoreTermios);
 	struct termios new_termios = oldTermios;
@@ -82,7 +86,7 @@ int main(int argc, char* argv[])
 
 		if (checkCollision())
 		{
-			puts("\nYou loose");
+			puts("\e[2JYou loose");
 			return 0;
 		}
 	}
@@ -128,31 +132,16 @@ static void checkFood(void)
 
 static void drawScreen(void)
 {
-	char screen[HEIGHT][WIDTH + 1];
-
-	for (size_t row = 0; row < HEIGHT; row++)
-	{
-		for (size_t col = 0; col < WIDTH; col++)
-				screen[row][col] = ' ';
-		screen[row][WIDTH] = '\n';
-	}
-	screen[HEIGHT - 1][WIDTH] = '\0';
-
+	printf("\e[2J");
 	struct SnakeSegment* current = snakeHead;
 	while (current)
 	{
 		if (current->row >= 0 && current->row < HEIGHT && current->col >= 0 && current->col < WIDTH)
-				screen[current->row][current->col] = '0';
+				printf("\e[%u;%uH0", current->row, current->col);
 		current = current->next;
 	}
-	screen[food.row][food.col] = 'X';
-
-#ifdef __inlow__
-	write(1, "\0", 1);
-#else
-	write(1, "\n", 1);
-#endif
-	write(1, screen, sizeof(screen) - 1);
+	printf("\e[%u;%uHX", food.row, food.col);
+	printf("\e[H");
 }
 
 static void handleInput(void)
@@ -243,10 +232,10 @@ static void move(struct SnakeSegment* snake)
 static void restoreTermios(void)
 {
 	tcsetattr(0, TCSAFLUSH, &oldTermios);
-	putchar('\n');
 }
 
 static int gameOver(int i)
 {
+	printf("\e[2J");
 	exit(i);
 }

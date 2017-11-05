@@ -10,6 +10,7 @@ CFLAGS += --sysroot=$(SYSROOT) -Wall -Wextra
 CPPFLAGS += -D_INLOW_SOURCE
 
 PROGRAMS = \
+		   clear \
 		   echo \
 		   false \
 		   ls \

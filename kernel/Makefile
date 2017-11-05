@@ -43,6 +43,7 @@ OBJ = addressspace.o \
 		syscall.o \
 		terminal.o \
 		timer.o \
+		vgaterminal.o \
 		vnode.o
 		
 OBJ += arch/i686/interrupts.o \
