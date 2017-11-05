@@ -1,4 +1,5 @@
 #include <dirent.h>
+#include <err.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -16,7 +17,11 @@ int main(int argc, char* argv[])
 	{
 		struct stat st;
 		if (stat(argv[i], &st) < 0)
-				continue;
+		{
+			warn("stat: '%s'", argv[i]);
+			continue;
+		}
+
 		if (S_ISDIR(st.st_mode))
 				listDirectory(argv[i]);
 		else
@@ -28,7 +33,10 @@ static void listDirectory(const char* path)
 {
 	DIR* dir = opendir(path);
 	if (!dir)
-			return;
+	{
+		warn("opendir: '%s'", path);
+		return;
+	}
 	struct dirent* entry = readdir(dir);
 
 	while (entry)

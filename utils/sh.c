@@ -1,3 +1,4 @@
+#include <err.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -35,6 +36,8 @@ int main(int argc, char* argv[])
 		}
 
 		char** arguments = malloc((argumentCount + 1) * sizeof(char*));
+		if (!arguments)
+				err(1, "malloc");
 		char* token = strtok(buffer, " ");
 		size_t argCount = 0;
 
@@ -68,7 +71,7 @@ static int executeCommand(int argc, char* arguments[])
 
 	if (pid < 0)
 	{
-		fputs("fork() failed\n", stderr);
+		warn("fork");
 		return -1;
 	}
 	else if (pid == 0)
@@ -80,14 +83,21 @@ static int executeCommand(int argc, char* arguments[])
 		if (command)
 		{
 			execv(command, arguments);
+			warn("execv: '%s'", command);
 		}
-		fputs("Command not found\n", stderr);
+		else
+		{
+			warnx("'%s': Command not fount", arguments[0]);
+		}
 		_Exit(127);
 	}
 	else
 	{
 		int status;
-		waitpid(pid, &status, 0);
+		if (waitpid(pid, &status, 0) == -1)
+		{
+			err(1, "waitpid");
+		}
 		return WEXITSTATUS(status);
 	}
 }
@@ -100,6 +110,8 @@ static const char* getExecutablePath(const char* command)
 	{
 		size_t length = strcspn(path, ":");
 		char* buffer = malloc(commandLength + length + 2);
+		if (!buffer)
+			err(1, "malloc");
 		memcpy(buffer, path, length);
 		buffer[length] = '/';
 		memcpy(buffer + length + 1, command, commandLength);
@@ -127,14 +139,14 @@ static int cd(int argc, char* argv[])
 		newCwd = getenv("HOME");
 		if (!newCwd)
 		{
-			fputs("HOME not set\n", stderr);
+			warnx("HOME not set");
 			return 1;
 		}
 	}
 
 	if (chdir(newCwd) == -1)
 	{
-		fputs("Error: chdir faild\n", stderr);
+		warn("cd: '%s'", newCwd);
 		return 1;
 	}
 
