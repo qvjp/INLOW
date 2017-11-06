@@ -1,37 +1,41 @@
 #include <stdarg.h>
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
 
-static size_t integerToString(char* output, uintmax_t value, unsigned base);
+static const char* lowerDigits = "0123456789abcdef";
+static const char* upperDigits = "0123456789ABCDEF";
+
+static size_t integerToString(char* output, uintmax_t value, unsigned int base, const char* digits);
 static size_t noop(void*, const char*, size_t);
 
 enum
 {
 	LENGTH_CHAR,
-	LENGTH_SHORT,
-	LENGTH_INT,
-	LENGTH_LONG,
-	LENGTH_LONG_LONG,
-	LENGTH_INTMAX,
-	LENGTH_SIZE,
-	LENGTH_PTRDIFF,
-	LENGTH_LONG_DOUBLE
+    LENGTH_SHORT,
+    LENGTH_INT,
+    LENGTH_LONG,
+    LENGTH_LONG_LONG,
+    LENGTH_INTMAX,
+    LENGTH_SIZE,
+    LENGTH_PTRDIFF,
+    LENGTH_LONG_DOUBLE
 };
 
 enum
 {
 	SPECIFIER_SIGNED = 1,
-	SPECIFIER_OCTAL,
-	SPECIFIER_UNSIGNED,
-	SPECIFIER_HEX,
-	SPECIFIER_HEX_CAPITAL,
-	SPECIFIER_CHAR,
-	SPECIFIER_STRING,
-	SPECIFIER_POINTER,
-	SPECIFIER_N,
-	SPECIFIER_PERCENT_SIGN
+    SPECIFIER_OCTAL,
+    SPECIFIER_UNSIGNED,
+    SPECIFIER_HEX,
+    SPECIFIER_HEX_CAPITAL,
+    SPECIFIER_CHAR,
+    SPECIFIER_STRING,
+    SPECIFIER_POINTER,
+    SPECIFIER_N,
+    SPECIFIER_PERCENT_SIGN
 };
 
 int vcbprintf(void* param, size_t (*callback)(void*, const char*, size_t),
@@ -116,12 +120,13 @@ int vcbprintf(void* param, size_t (*callback)(void*, const char*, size_t),
 							break;
 				}
 			}
+			bool negative = false;
 			uintmax_t value;
-			if (specifier != SPECIFIER_CHAR
-							&& specifier != SPECIFIER_STRING
-							&& specifier != SPECIFIER_POINTER
-							&& specifier != SPECIFIER_N
-							&& specifier != SPECIFIER_PERCENT_SIGN)
+
+			if (specifier == SPECIFIER_OCTAL
+							|| specifier == SPECIFIER_UNSIGNED
+							|| specifier == SPECIFIER_HEX
+							|| specifier == SPECIFIER_HEX_CAPITAL)
 			{
 				switch (length)
 				{
@@ -153,6 +158,41 @@ int vcbprintf(void* param, size_t (*callback)(void*, const char*, size_t),
 					value = 0;	
 				}
 			}
+			else if (specifier == SPECIFIER_SIGNED)
+			{
+				intmax_t signedValue;
+				switch (length)
+				{
+					case LENGTH_CHAR:
+							signedValue = (signed char) va_arg(ap, int);
+							break;
+					case LENGTH_SHORT:
+							signedValue = (short) va_arg(ap, int);
+							break;
+					case LENGTH_INT:
+							signedValue = va_arg(ap, int);
+							break;
+					case LENGTH_LONG:
+							signedValue = va_arg(ap, long);
+							break;
+					case LENGTH_LONG_LONG:
+							signedValue = va_arg(ap, long long);
+							break;
+					case LENGTH_INTMAX:
+							signedValue = va_arg(ap, intmax_t);
+							break;
+					case LENGTH_SIZE:
+							signedValue = va_arg(ap, ssize_t);
+							break;
+					case LENGTH_PTRDIFF:
+							signedValue = va_arg(ap, ptrdiff_t);
+							break;
+					default:
+							signedValue = 0;
+				}	
+				negative = signedValue < 0;
+				value = negative ? -signedValue : signedValue;
+			}
 			size_t size;
 			char c;
 			const char* s;
@@ -160,26 +200,40 @@ int vcbprintf(void* param, size_t (*callback)(void*, const char*, size_t),
 			switch (specifier)
 			{
 				case SPECIFIER_SIGNED:
+						if (negative)
+						{
+							if (callback(param, "-", 1) != 1)
+									return -1;
+							result++;
+						}
+						size = integerToString(buffer, value, 10, lowerDigits);
+						if (callback(param, buffer, size) != size)
+								return -1;
+						result += size;
 						break;
 				case SPECIFIER_OCTAL:
-						size = integerToString(buffer, value, 8);
+						size = integerToString(buffer, value, 8, lowerDigits);
 						if (callback(param, buffer, size) != size)
 								return -1;
 						result += size;
 						break;
 				case SPECIFIER_UNSIGNED:
-						size = integerToString(buffer, value, 10);
+						size = integerToString(buffer, value, 10, lowerDigits);
 						if (callback(param, buffer, size) != size) 
 								return -1;
 						result += size;
 						break;
 				case SPECIFIER_HEX:
-						size = integerToString(buffer, value, 16);
+						size = integerToString(buffer, value, 16, lowerDigits);
 						if (callback(param, buffer, size) != size) 
 								return -1;
 						result += size;
 						break;
 				case SPECIFIER_HEX_CAPITAL:
+						size = integerToString(buffer, value, 16, upperDigits);
+						if (callback(param, buffer, size) != size)
+								return -1;
+						result += size;
 						break;
 				case SPECIFIER_CHAR:
 						c = (char) va_arg(ap, int);
@@ -196,7 +250,7 @@ int vcbprintf(void* param, size_t (*callback)(void*, const char*, size_t),
 						break;
 				case SPECIFIER_POINTER:
 						value = (uintptr_t) va_arg(ap, void*);
-						size_t size = integerToString(buffer, value, 16);
+						size_t size = integerToString(buffer, value, 16, lowerDigits);
 						if (callback(param, buffer, size) != size)
 								return -1;
 						result += size;
@@ -210,14 +264,13 @@ int vcbprintf(void* param, size_t (*callback)(void*, const char*, size_t),
 						break;
 			}
 		}
-		format ++;
+		format++;
 	}
 	return result;
 }
 
-static size_t integerToString(char* output, uintmax_t value, unsigned base)
+static size_t integerToString(char* output, uintmax_t value, unsigned int base, const char* digits)
 {
-	static const char* digits = "0123456789abcdef";
 	uintmax_t i = value;
 	size_t length = 0;
 	while (i > 0)
