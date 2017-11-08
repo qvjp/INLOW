@@ -1,3 +1,4 @@
+#include <inttypes.h>
 #include <inlow/kernel/interrupts.h>
 #include <inlow/kernel/print.h>
 #include <inlow/kernel/port.h>
@@ -42,12 +43,12 @@ extern "C" InterruptContext* handleInterrupt(InterruptContext* context)
 	InterruptContext* newContext = context;
 	if (context->interrupt <= 31) //CPU Exception
 	{
-		Print::printf("Exception %u occurred!\n",context->interrupt);
-		Print::printf("eax: 0x%x, ebx: 0x%x, ecx: 0x%x, edx: 0x%x\n",
+		Print::printf("Exception %" PRIu32 " occurred!\n",context->interrupt);
+		Print::printf("eax: 0x%" PRIX32 ", ebx: 0x%" PRIX32 ", ecx: 0x%" PRIX32 ", edx: 0x%" PRIX32 "\n",
 		context->eax, context->ebx, context->ecx, context->edx);
-		Print::printf("edi: 0x%x, esi: 0x%x, ebp: 0x%x, error: 0x%x\n",
+		Print::printf("edi: 0x%" PRIX32 ", esi: 0x%" PRIX32 ", ebp: 0x%" PRIX32 ", error: 0x%" PRIX32 "\n",
 		context->edi, context->esi, context->ebp, context->error);
-		Print::printf("eip: 0x%x, cs: 0x%x, eflags: 0x%x\n",
+		Print::printf("eip: 0x%" PRIX32 ", cs: 0x%" PRIX32 ", eflags: 0x%" PRIX32 "\n",
 		context->eip, context->cs, context->eflags);
 
 		if (context->cs != 0x8)

@@ -1,3 +1,4 @@
+#include <inttypes.h>
 #include <inlow/kernel/interrupts.h>
 #include <inlow/kernel/print.h>
 #include <inlow/kernel/port.h>
@@ -50,7 +51,7 @@ void PS2::initialize()
 		uint8_t test = sendPS2CommandWithResponse(COMMAND_SELF_TEST);
 		if (test != 0x55)
 		{
-				Print::printf("PS/2 self test fialed (response = 0x%x)\n", test);
+				Print::printf("PS/2 self test fialed (response = 0x%" PRIX8 ")\n", test);
 				return;
 		}
 

@@ -10,5 +10,8 @@
 #define __noreturn __attribute__((__noreturn__))
 #endif
 
+#define __printf_like(format, firstArg) \
+		__attribute__((__format__(__printf__, format, firstArg)))
+
 
 #endif
