@@ -20,6 +20,8 @@ COMMON_OBJ = \
 		cxx/delete \
 		cxx/purevirtual \
 		errno/errno \
+		getopt/getopt \
+		getopt/getopt_long \
 		libgen/basename \
 		libgen/dirname \
 		stdio/vcbprintf \

@@ -25,6 +25,11 @@ extern "C"
 #define W_OK (1 << 1)
 #define X_OK (1 << 2)
 
+		extern char* optarg;
+		extern int opterr;
+		extern int optind;
+		extern int optopt;
+
 		int access(const char*, int);
 		int close(int);
 		int chdir(const char*);
@@ -33,6 +38,7 @@ extern "C"
 		int execve(const char*, char* const[], char* const[]);
 		__noreturn void _exit(int);
 		pid_t fork(void);
+		int getopt(int, char* const[], const char*);
 		ssize_t read(int, void*, size_t);
 		unsigned int sleep(unsigned int);
 		ssize_t write(int, const void*, size_t);
