@@ -1,6 +1,9 @@
+#include "utils.h"
 #include <err.h>
 #include <fcntl.h>
+#include <getopt.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -50,9 +53,31 @@ static void cat(const char* path)
 
 int main(int argc, char* argv[])
 {
-	if (argc >= 2)
+	struct option longopts[] = 
 	{
-		for (int i = 1; i < argc; i++)
+		{ "help", no_argument, 0, '?'},
+		{ "version", no_argument, 0, 1},
+		{ 0, 0, 0, 0}
+	};
+	int c;
+	while ((c = getopt_long(argc, argv, "u?", longopts, NULL)) != -1)
+	{
+		switch (c)
+		{
+			case 1:
+					return version(argv[0]);
+			case 'u':
+					break;
+			case '?':
+					return help(argv[0], "[OPTION] [FILE...]\n"
+									" -u,            (ignored)\n"
+									" -?, --help     display this help\n"
+									"     --version  display veresion info");
+		}
+	}
+	if (optind < argc)
+	{
+		for (int i = optind; i < argc; i++)
 		{
 			cat(argv[i]);
 		}
