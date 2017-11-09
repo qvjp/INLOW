@@ -31,6 +31,10 @@ extern "C"
 		char* strdup(const char*);
 #endif
 
+#if __USE_INLOW
+		size_t strlcpy(char* __restrict, const char* __restrict, size_t);
+#endif
+
 #ifdef __cplusplus
 }
 #endif

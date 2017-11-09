@@ -44,6 +44,7 @@ COMMON_OBJ = \
 		string/strcspn \
 		string/strdup \
 		string/strerror \
+		string/strlcpy \
 		string/strlen \
 		string/strncmp \
 		string/strrchr \
@@ -111,6 +112,7 @@ LIBC_OBJ = \
 		sys/mman/munmap \
 		sys/stat/fstatat \
 		sys/stat/stat \
+		sys/utsname/uname \
 		sys/wait/waitpid \
 		termios/tcgetattr \
 		termios/tcsetattr \
@@ -118,6 +120,7 @@ LIBC_OBJ = \
 		unistd/access \
 		unistd/chdir \
 		unistd/close \
+		unistd/confstr \
 		unistd/environ \
 		unistd/execl \
 		unistd/execv \

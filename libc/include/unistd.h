@@ -11,6 +11,7 @@
 #define __uid_t
 #include <sys/libc-types.h>
 
+#include <inlow/conf.h>
 #if __USE_INLOW
 #include <inlow/fork.h>
 #endif
@@ -33,6 +34,7 @@ extern "C"
 		int access(const char*, int);
 		int close(int);
 		int chdir(const char*);
+		size_t confstr(int, char*, size_t);
 		int execl(const char*, const char*, ...);
 		int execv(const char*, char* const[]);
 		int execve(const char*, char* const[], char* const[]);

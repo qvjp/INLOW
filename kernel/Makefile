@@ -24,6 +24,7 @@ END_OBJ = $(CRTEND_0) $(CRTN_0)
 
 OBJ = addressspace.o \
 		assert.o \
+		conf.o \
 		directory.o \
 		file.o \
 		filedescription.o \
