@@ -35,13 +35,13 @@ int main(int argc, char* argv[])
 		}
 	}
 
+	char* buffer = NULL;
+	size_t bufferSize = 0;
+
 	while (true)
 	{
 		fputs("$>", stderr);
-		char buffer[81];
-		fgets(buffer, sizeof(buffer), stdin);
-		size_t length = strlen(buffer);
-
+		ssize_t length = getline(&buffer, &bufferSize, stdin);
 		if (buffer[length - 1] == '\n')
 				buffer[length - 1] = '\0';
 
