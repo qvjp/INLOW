@@ -1,3 +1,8 @@
+#define CR0_WRITE_PROTECT (1 << 16)
+#define CR0_PAGING_ENABLE (1 << 31)
+#define PAGE_READONLY 0x1
+#define PAGE_WRITE 0x3
+
 .section multiboot
 .align 4
 .long 0x1BADB002
@@ -19,17 +24,26 @@ _start:
     # Identity-map the bootstrap section
     mov $numBootstrapPages, %ecx
     mov $(pageTableBootstrap + 256 * 4), %edi
-    mov $(bootstrapBegin + 3), %edx
+    mov $(bootstrapBegin + 0x3), %edx
 
 1:  mov %edx, (%edi)
     add $4, %edi
     add $0x1000, %edx
     loop 1b
 
-    # Map the kernel
-    mov $numKernelPages, %ecx
+    # Map readonly part of the kernel
+    mov $numReadOnlyPages, %ecx
     add $(pageTableKernel - pageTableBootstrap), %edi
-    mov $(kernelPhysicalBegin + 3), %edx
+    mov $(kernelPhysicalBegin + 0x1), %edx
+
+1:  mov %edx, (%edi)
+	add $4, %edi
+	add $0x1000, %edx
+	loop 1b
+
+	# Map wirteable part
+	mov $numWritablePages, %ecx
+	or $0x3, %edx
 
 1:  mov %edx, (%edi)
     add $4, %edi
@@ -44,7 +58,7 @@ _start:
     mov %ecx, %cr3
 
     mov %cr0, %ecx
-    or $0x80000000, %ecx
+    or $((1 << 16) | (1 << 31)), %ecx
     mov %ecx, %cr0
 
     # Jump into the higher half
