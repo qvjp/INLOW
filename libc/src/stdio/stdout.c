@@ -1,7 +1,8 @@
-#include <stdio.h>
+#include "FILE.h"
 
-FILE __stdout = {
+static FILE __stdout = {
 	.fd = 1,
+	.flags = 0,
 };
 
 FILE* stdout = &__stdout;

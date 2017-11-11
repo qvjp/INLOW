@@ -19,12 +19,6 @@
 extern "C"
 {
 #endif
-#ifdef __is_inlow_libc
-		struct __FILE
-		{
-			int fd;
-		};
-#endif
 
 #define EOF (-1)
 
@@ -35,7 +29,10 @@ extern "C"
 #define stdout stdout
 #define stderr stderr
 
+		void clearerr(FILE*);
 		int fclose(FILE*);
+		int feof(FILE*);
+		int ferror(FILE*);
 		int fflush(FILE*);
 		int fgetc(FILE*);
 		char* fgets(char* __restrict, int, FILE* __restrict);
@@ -64,10 +61,14 @@ extern "C"
 		int putchar_unlocked(int);
 #endif
 #if __USE_INLOW
+		void clearerr_unlocked(FILE*);
+		int feof_unlocked(FILE*);
+		int ferror_unlocked(FILE*);
 		int fgetc_unlocked(FILE*);
 		char* fgets_unlocked(char* __restrict, int, FILE* __restrict);
 		int fputc_unlocked(int, FILE*);
 		int fputs_unlocked(const char* __restrict, FILE* __restrict);
+		size_t fwrite_unlocked(const void* __restrict, size_t, size_t, FILE* __restrict);
 		int vcbprintf(void*, size_t (*)(void*, const char*, size_t), const char*, __gnuc_va_list) __printf_like(3, 0);
 		int vfprintf_unlocked(FILE* __restrict, const char* __restrict, __gnuc_va_list) __printf_like(2, 0);
 #endif

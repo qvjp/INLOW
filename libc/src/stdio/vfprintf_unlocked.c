@@ -4,8 +4,7 @@
 
 static size_t callback(void* file, const char* s, size_t nBytes)
 {
-	FILE* f = (FILE*) file;
-	return write(f->fd, s, nBytes);
+	return fwrite_unlocked(s, 1, nBytes, (FILE*) file);
 }
 
 int vfprintf_unlocked(FILE* restrict file, const char* restrict format, va_list ap)

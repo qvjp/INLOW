@@ -1,8 +1,9 @@
-#include <stdio.h>
+#include "FILE.h"
 
-FILE __stderr = 
+static FILE __stderr = 
 {
 	.fd = 2,
+	.flags = 0,
 };
 
 FILE* stderr = &__stderr;
