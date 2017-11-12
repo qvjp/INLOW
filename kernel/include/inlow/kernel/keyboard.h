@@ -4,6 +4,7 @@
 namespace Keyboard
 {
 	char getCharFromKey(int key);
+	const char* getSequenceFromKey(int key);
 }
 
 class KeyboardListener

@@ -10,11 +10,8 @@ Terminal::Terminal() : Vnode(S_IFCHR)
 	termio.c_cc[VMIN] = 1;
 }
 
-void Terminal::onKeyboardEvent(int key)
+void Terminal::handleCharacter(char c)
 {
-	char c = Keyboard::getCharFromKey(key);
-	if (!c)
-			return;
 	if ((termio.c_lflag & ICANON) && c == '\b')
 	{
 		if (terminalBuffer.backspace() && (termio.c_lflag & ECHO))
@@ -29,6 +26,36 @@ void Terminal::onKeyboardEvent(int key)
 				VgaTerminal::printCharacterRaw(c);
 		}
 		terminalBuffer.write(c, termio.c_lflag & ICANON);
+	}
+}
+
+void Terminal::handleSequence(const char* sequence)
+{
+	if (!(termio.c_lflag & ICANON))
+	{
+		while (*sequence)
+		{
+			if (termio.c_lflag & ECHO)
+					VgaTerminal::printCharacterRaw(*sequence);
+			terminalBuffer.write(*sequence++, false);
+		}
+	}
+}
+
+void Terminal::onKeyboardEvent(int key)
+{
+	char c = Keyboard::getCharFromKey(key);
+	if (c)
+	{
+		handleCharacter(c);
+	}
+	else
+	{
+		const char* sequence = Keyboard::getSequenceFromKey(key);
+		if (sequence)
+		{
+			handleSequence(sequence);
+		}
 	}
 	VgaTerminal::updateCursorPosition();
 }

@@ -96,6 +96,7 @@
 #define KB_F11 0x57
 #define KB_F12 0x58
 
+#define KB_NUMPAD_ENTER 0x9C
 #define KB_RCONTROL 0x9D
 #define KB_NUMPAD_DIV 0xB5
 #define KB_RALT 0xB8
@@ -104,7 +105,8 @@
 #define KB_PAGEUP 0xC9
 #define KB_LEFT 0xCB
 #define KB_RIGHT 0xCD
-#define KB_DOEN 0xD0
+#define KB_END 0xCF
+#define KB_DOWN 0xD0
 #define KB_PAGEDOWN 0xD1
 #define KB_INSERT 0xD2
 #define KB_DELETE 0xD3
