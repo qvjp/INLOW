@@ -1,4 +1,5 @@
 #include <stddef.h>
+#include <inlow/kbkeys.h>
 #include <inlow/kernel/keyboard.h>
 
 static const char KBLAYOUT_US[] = {
@@ -87,15 +88,15 @@ char Keyboard::getCharFromKey(int key)
 	static bool rightShift = false;
 	static bool capsLock = false;
 	
-	if (key == 0x2A)
+	if (key == KB_LSHIFT)
 			leftShift = true;
-	else if (key == 0x36)
+	else if (key == KB_RSHIFT)
 			rightShift =true;
-	else if (key == 0x3A)
+	else if (key == KB_CAPSLOCK)
 			capsLock = !capsLock;
-	else if (key == -0x2A)
+	else if (key == -KB_LSHIFT)
 			leftShift = false;
-	else if (key == -0x36)
+	else if (key == -KB_RSHIFT)
 			rightShift = false;
 
 	if (key < 0)
