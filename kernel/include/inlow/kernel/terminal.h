@@ -13,9 +13,11 @@ class TerminalBuffer
 			TerminalBuffer();
 			size_t available();
 			bool backspace();
+			void endLine();
+			bool hasIncompleteLine();
 			char read();
 			void reset();
-			void write(char c, bool canonicalMode);
+			void write(char c);
 	private:
 			char circularBuffer[TERMINAL_BUFFER_SIZE];
 			volatile size_t readIndex;
@@ -38,6 +40,7 @@ class Terminal : public Vnode, public KeyboardListener
 	private:
 			TerminalBuffer terminalBuffer;
 			struct termios termio;
+			volatile unsigned int numEof;
 };
 
 extern Terminal terminal;
