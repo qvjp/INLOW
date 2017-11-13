@@ -40,7 +40,8 @@ int main(int argc, char* argv[])
 
 	while (true)
 	{
-		fputs("$>", stderr);
+		//fputs("$>", stderr);
+		fprintf(stderr, "\e[32m%s\e[22;39m", "$>");
 		ssize_t length = getline(&buffer, &bufferSize, stdin);
 		if (length < 0)
 		{
