@@ -34,7 +34,7 @@ static inline char* videoOffset(unsigned int line, unsigned int column)
 
 static void clear(char* offset, size_t size)
 {
-	for (size_t i = 0; i < size; i++)
+	for (size_t i = 0; i < size; i+=2)
 	{
 		offset[i] = 0;
 		offset[i + 1] = color;

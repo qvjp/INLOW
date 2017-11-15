@@ -43,6 +43,11 @@ extern "C" InterruptContext* handleInterrupt(InterruptContext* context)
 	InterruptContext* newContext = context;
 	if (context->interrupt <= 31) //CPU Exception
 	{
+		Print::printf("\e[2J");
+		Print::printf("\e[1;37;44m");
+		for (int i = 0; i < 25 * 80; i++)
+				Print::printf(" ");
+		Print::printf("\e[15A");
 		Print::printf("Exception %" PRIu32 " occurred!\n",context->interrupt);
 		Print::printf("eax: 0x%" PRIX32 ", ebx: 0x%" PRIX32 ", ecx: 0x%" PRIX32 ", edx: 0x%" PRIX32 "\n",
 		context->eax, context->ebx, context->ecx, context->edx);
