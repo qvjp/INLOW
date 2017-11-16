@@ -31,6 +31,7 @@ COMMON_OBJ = \
 		stdlib/malloc-util \
 		stdlib/rand \
 		stdlib/realloc \
+		stdlib/reallocarray \
 		stdlib/strtol \
 		stdlib/strtoul \
 		string/memcmp \
