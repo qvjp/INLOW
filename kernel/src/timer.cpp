@@ -1,3 +1,4 @@
+#include <sched.h>
 #include <inlow/kernel/pit.h>
 #include <inlow/kernel/syscall.h>
 
@@ -42,8 +43,7 @@ void Timer::wait()
 {
 	while (!isZero(time))
 	{
-		asm volatile ("int $0x31");
-		__sync_synchronize();
+		sched_yield();
 	}
 	Pit::deregisterTimer(index);
 }

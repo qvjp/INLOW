@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <errno.h>
+#include <sched.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -340,8 +341,7 @@ Process* Process::waitpid(pid_t pid, int flags)
 			Process* result = children[i];
 			while (!result->terminated)
 			{
-				asm volatile("int $0x31");
-				__sync_synchronize();
+				sched_yield();
 			}
 
 			if (i < numChildren - 1)

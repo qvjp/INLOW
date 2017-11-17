@@ -1,4 +1,5 @@
 #include <errno.h>
+#include <sched.h>
 #include <sys/stat.h>
 #include <inlow/fcntl.h>
 #include <inlow/kernel/print.h>
@@ -70,15 +71,14 @@ int Syscall::execve(const char* path, char* const argv[], char* const envp[])
 		return -1;
 	}
 
-	// Schedule
-	asm volatile ("int $0x31");
+	sched_yield();
 	__builtin_unreachable();
 }
 
 NORETURN void Syscall::exit(int status)
 {
 	Process::current->exit(status);
-	asm volatile ("int $0x31");
+	sched_yield();
 	__builtin_unreachable();
 }
 
