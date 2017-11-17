@@ -54,28 +54,39 @@ AddressSpace::AddressSpace()
 	if (this == &_kernelSpace)
 	{
 		pageDir = 0;
+		pageDirMapped = RECURSIVE_MAPPING + 0x3FF000;
 		firstSegment = nullptr;
+		prev = nullptr;
 		next = nullptr;
 	}
 	else
 	{
 		pageDir = PhysicalMemory::popPageFrame();
 
-		vaddr_t kernelPageDir = (RECURSIVE_MAPPING + 0x3FF000);
-		vaddr_t newPageDir = kernelSpace->map(pageDir, PROT_WRITE);
-		memcpy((void*) newPageDir, (const void*) kernelPageDir, 0x1000);
-		kernelSpace->unmap(newPageDir);
+		vaddr_t kernelPageDir = kernelSpace->pageDirMapped; 
+		pageDirMapped = kernelSpace->mapPhysical(pageDir, 0x1000, PROT_READ | PROT_WRITE);
+		memcpy((void*) pageDirMapped, (const void*) kernelPageDir, 0x1000);
 
 		firstSegment = new MemorySegment(0, 0x1000, PROT_NONE | SEG_NOUNMAP, nullptr, nullptr);
 		MemorySegment::addSegment(firstSegment, 0xC0000000, -0xC0000000, PROT_NONE | SEG_NOUNMAP);
 
+		prev = nullptr;
 		next = firstAddressSpace;
+		if (next)
+			next->prev = this;
 		firstAddressSpace = this;
 	}
 }
 
 AddressSpace::~AddressSpace()
 {
+	if (prev)
+		prev->next = next;
+	if (next)
+		next->prev = prev;
+	if (this == firstAddressSpace)
+		firstAddressSpace = next;
+
 	MemorySegment* currentSegment = firstSegment;
 	while (currentSegment)
 	{
@@ -154,105 +165,37 @@ paddr_t AddressSpace::getPhysicalAddress(vaddr_t virtualAddress)
 		size_t ptIndex;
 		addressToIndex(virtualAddress, pdIndex, ptIndex);
 
-		uintptr_t* pageDirectory;
-		uintptr_t* pageTable = nullptr;
-		paddr_t result = 0;
+		uintptr_t* pageDirectory = (uintptr_t*) pageDirMapped;
 
-		if(this == kernelSpace)
-		{
-				pageDirectory = (uintptr_t*) (RECURSIVE_MAPPING + 0x3FF000);
-				pageTable = (uintptr_t*) (RECURSIVE_MAPPING + 0x1000 * pdIndex);
-		}
-		else
-		{
-			pageDirectory = (uintptr_t*) kernelSpace->map(pageDir, PROT_READ);
-		}
-		if (pageDirectory[pdIndex])
-		{
-			if (this != kernelSpace)
-			{
-				pageTable = (uintptr_t*) kernelSpace->map(pageDirectory[pdIndex] & ~0xFFF, PROT_READ);
-			}
-			result = pageTable[ptIndex] & ~0xFFF;
-		}
-		if (this != kernelSpace)
-		{
-			if (pageTable)
-					kernelSpace->unmap((vaddr_t) pageTable);
-			kernelSpace->unmap((vaddr_t) pageDirectory);
-		}
+		if (!pageDirectory[pdIndex])
+			return 0;
 
-		return result;
-		}
-
-bool AddressSpace::isFree(size_t pdIndex, size_t ptIndex)
-{
-	if (pdIndex == 0 && ptIndex == 0)
-			return false;
-	uintptr_t* pageDirectory;
-	uintptr_t* pageTable = nullptr;
-
-	bool result;
+	uintptr_t* pageTable;
 
 	if (this == kernelSpace)
 	{
-		pageDirectory = (uintptr_t*) (RECURSIVE_MAPPING + 0x3FF000);
 		pageTable = (uintptr_t*) (RECURSIVE_MAPPING + 0x1000 * pdIndex);
 	}
 	else
 	{
-		pageDirectory = (uintptr_t*) kernelSpace->map(pageDir, PROT_READ);
+		pageTable = (uintptr_t*) kernelSpace->map(pageDirectory[pdIndex] & ~0xFFF, PROT_READ);
 	}
-	if (!pageDirectory[pdIndex])
-	{
-		result = true;
-	}
-	else
-	{
-		if (this != kernelSpace)
-		{
-			pageTable = (uintptr_t*)
-					kernelSpace->map(pageDirectory[pdIndex] & ~0xFFF, PROT_READ);
-		}
-		result = !pageTable[ptIndex];
-	}
+	paddr_t result = pageTable[ptIndex] & ~0xFFF;
 
 	if (this != kernelSpace)
 	{
-		if (pageTable)
-				kernelSpace->unmap((vaddr_t) pageTable);
-		kernelSpace->unmap((vaddr_t) pageDirectory);
+		kernelSpace->unmap((vaddr_t) pageTable);
 	}
 	return result;
 }
 
 vaddr_t AddressSpace::map(paddr_t physicalAddress, int protection)
 {
-		size_t begin;
-		size_t end;
-
-		if (this == kernelSpace)
-		{
-			begin = 0x300;
-			end = 0x400;
-		}
-		else
-		{
-			begin = 0;
-			end = 0x300;
-		}
-		for (size_t pdIndex = begin; pdIndex < end; pdIndex++)
-		{
-				for (size_t ptIndex = 0; ptIndex < 0x400; ptIndex++)
-				{
-						if (isFree(pdIndex, ptIndex))
-						{
-								return mapAt(pdIndex, ptIndex, physicalAddress, protection);
-						}
-				}
-		}
-		return 0;
+	assert(this == kernelSpace);
+	vaddr_t address = MemorySegment::findFreeSegment(firstSegment, 0x1000);
+	return mapAt(address, physicalAddress, protection);
 }
+
 vaddr_t AddressSpace::mapAt(vaddr_t virtualAddress, paddr_t physicalAddress, int protection)
 {
 		size_t pdIndex; 
@@ -279,18 +222,14 @@ vaddr_t AddressSpace::mapAtWithFlags(size_t pdIndex, size_t ptIndex, paddr_t phy
 {
 		assert(!(flags & ~0xFFF));
 		assert(!(physicalAddress & 0xFFF));
-		uintptr_t* pageDirectory;
+		uintptr_t* pageDirectory = (uintptr_t*) pageDirMapped;
 		uintptr_t* pageTable = nullptr;
 
 		if(this == kernelSpace)
 		{
-				pageDirectory = (uintptr_t*) (RECURSIVE_MAPPING + 0x3FF000);
-				pageTable = (uintptr_t*) (RECURSIVE_MAPPING + 0x1000 * pdIndex);
+			pageTable = (uintptr_t*) (RECURSIVE_MAPPING + 0x1000 * pdIndex);
 		}
-		else
-		{
-			pageDirectory = (uintptr_t*) kernelSpace->map(pageDir, PROT_READ | PROT_WRITE);
-		}
+
 		if (!pageDirectory[pdIndex])
 		{
 			paddr_t pageTablePhys = PhysicalMemory::popPageFrame();
@@ -310,9 +249,8 @@ vaddr_t AddressSpace::mapAtWithFlags(size_t pdIndex, size_t ptIndex, paddr_t phy
 				AddressSpace* addressSpace = firstAddressSpace;
 				while (addressSpace)
 				{
-					uintptr_t* pageDir = (uintptr_t*) map(addressSpace->pageDir, PROT_READ | PROT_WRITE);
-					pageDir[pdIndex] = pageTablePhys | PAGE_PRESENT | PAGE_WRITABLE;
-					unmap((vaddr_t) pageDir);
+					uintptr_t* pd = (uintptr_t*) addressSpace->pageDirMapped;
+					pd[pdIndex] = pageTablePhys | PAGE_PRESENT | PAGE_WRITABLE;
 					addressSpace = addressSpace->next;
 				}
 			}
@@ -326,7 +264,6 @@ vaddr_t AddressSpace::mapAtWithFlags(size_t pdIndex, size_t ptIndex, paddr_t phy
 		if (this != kernelSpace)
 		{
 			kernelSpace->unmap((vaddr_t) pageTable);
-			kernelSpace->unmap((vaddr_t) pageDirectory);
 		}
 		vaddr_t virtualAddress = indexToAddress(pdIndex, ptIndex);
 
@@ -337,7 +274,7 @@ vaddr_t AddressSpace::mapAtWithFlags(size_t pdIndex, size_t ptIndex, paddr_t phy
 
 vaddr_t AddressSpace::mapFromOtherAddressSpace(AddressSpace* sourceSpace, vaddr_t sourceVirtualAddress, size_t size, int protection)
 {
-		vaddr_t destination = MemorySegment::findFreeSegment(firstSegment, size);
+		vaddr_t destination = MemorySegment::findAndAddNewSegment(firstSegment, size, protection);
 
 		for (size_t i = 0; i < size; i+= 0x1000)
 		{
@@ -345,16 +282,23 @@ vaddr_t AddressSpace::mapFromOtherAddressSpace(AddressSpace* sourceSpace, vaddr_
 				if (!physicalAddress || !mapAt(destination + i, physicalAddress, protection))
 						return 0;
 		}
-		MemorySegment::addSegment(firstSegment, destination, size, protection);
 		return destination;
 }
 vaddr_t AddressSpace::mapMemory(size_t size, int protection)
 {
-	vaddr_t virtualAddress = MemorySegment::findFreeSegment(firstSegment, size);
-	return mapMemory(virtualAddress, size, protection);
+	vaddr_t virtualAddress = MemorySegment::findAndAddNewSegment(firstSegment, size, protection);
+	paddr_t physicalAddress;
+	for (size_t i = 0; i < size; i += 0x1000)
+	{
+		physicalAddress = PhysicalMemory::popPageFrame();
+		if (!physicalAddress || !mapAt(virtualAddress + i, physicalAddress, protection))
+				return 0;
+	}
+	return virtualAddress;
 }
 vaddr_t AddressSpace::mapMemory(vaddr_t virtualAddress, size_t size, int protection)
 {
+	MemorySegment::addSegment(firstSegment, virtualAddress, size, protection);
 	paddr_t physicalAddress;
 	for (size_t i = 0; i < size; i += 0x1000)
 	{
@@ -363,18 +307,23 @@ vaddr_t AddressSpace::mapMemory(vaddr_t virtualAddress, size_t size, int protect
 				return 0;
 	}
 	
-	MemorySegment::addSegment(firstSegment, virtualAddress, size, protection);
 	return virtualAddress;
 }
 
 vaddr_t AddressSpace::mapPhysical(paddr_t physicalAddress, size_t size, int protection)
 {
-	vaddr_t virtualAddress = MemorySegment::findFreeSegment(firstSegment, size);
-	return mapPhysical(virtualAddress, physicalAddress, size, protection);
+	vaddr_t virtualAddress = MemorySegment::findAndAddNewSegment(firstSegment, size, protection);
+	for (size_t i = 0; i < size; i += 0x1000)
+	{
+		if (!mapAt(virtualAddress + i, physicalAddress + i, protection))
+			return 0;
+	}
+	return virtualAddress;
 }
 
 vaddr_t AddressSpace::mapPhysical(vaddr_t virtualAddress, paddr_t physicalAddress, size_t size, int protection)
 {
+		MemorySegment::addSegment(firstSegment, virtualAddress, size, protection);
 		for (size_t i = 0; i < size; i += 0x1000)
 		{
 				if (!mapAt(virtualAddress + i, physicalAddress + i, protection))
@@ -382,7 +331,6 @@ vaddr_t AddressSpace::mapPhysical(vaddr_t virtualAddress, paddr_t physicalAddres
 					return 0;
 				}
 		}
-		MemorySegment::addSegment(firstSegment, virtualAddress, size, protection);
 		return virtualAddress;
 }
 
@@ -411,50 +359,4 @@ void AddressSpace::unmapPhysical(vaddr_t virtualAddress, size_t size)
 				unmap(virtualAddress + i);
 		}
 		MemorySegment::removeSegment(firstSegment, virtualAddress, size);
-}
-
-static void* mmapImplementation(void*, size_t size, int protection, int flags, int, off_t)
-{
-	if (size == 0 || !(flags & MAP_PRIVATE))
-	{
-		errno = EINVAL;
-		return MAP_FAILED;
-	}
-
-	if (flags & MAP_ANONYMOUS)
-	{
-		AddressSpace* addressSpace = Process::current->addressSpace;
-		return (void*) addressSpace->mapMemory(size, protection);
-	}
-
-	//TODO: Implement other flags than MAP_ANONYMOUS
-	errno = ENOTSUP;
-	return MAP_FAILED;
-}
-
-void* Syscall::mmap(__mmapRequest* request)
-{
-	return mmapImplementation(request->_addr, request->_size, request->_protection, request->_flags, request->_fd, request->_offset);
-}
-
-int Syscall::munmap(void* addr, size_t size)
-{
-	if (size == 0 || ((vaddr_t) addr & 0xFFF))
-	{
-		errno = EINVAL;
-		return -1;
-	}
-	AddressSpace* addressSpace = Process::current->addressSpace;
-	addressSpace->unmapMemory((vaddr_t) addr, size);
-	return 0;
-}
-// These two function are called from libk
-extern "C" void* __mapMemory(size_t size)
-{
-	return (void*) kernelSpace->mapMemory(size, PROT_READ | PROT_WRITE);
-}
-
-extern "C" void __unmapMemory(void* addr, size_t size)
-{
-	kernelSpace->unmapMemory((vaddr_t) addr, size);
 }

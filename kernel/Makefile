@@ -23,7 +23,6 @@ START_OBJ = $(CRTI_0) $(CRTBEGIN_0)
 END_OBJ = $(CRTEND_0) $(CRTN_0) 
 
 OBJ = addressspace.o \
-		assert.o \
 		conf.o \
 		directory.o \
 		file.o \
@@ -34,6 +33,7 @@ OBJ = addressspace.o \
 		interrupts.o \
 		kernel.o \
 		keyboard.o \
+		libk.o \
 		print.o \
 		memorysegment.o \
 		physicalmemory.o \

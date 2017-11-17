@@ -161,6 +161,13 @@ vaddr_t MemorySegment::findFreeSegment(MemorySegment* firstSegment, size_t size)
 	return currentSegment->address + currentSegment->size;
 }
 
+vaddr_t MemorySegment::findAndAddNewSegment(MemorySegment* firstSegment, size_t size, int protection)
+{
+	vaddr_t address = findFreeSegment(firstSegment, size);
+	addSegment(firstSegment, address, size, protection);
+	return address;
+}
+
 void MemorySegment::verifySegmentList()
 {
 	MemorySegment* current = (MemorySegment*) segmentPage;

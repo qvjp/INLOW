@@ -2,6 +2,7 @@
 #include <sched.h>
 #include <sys/stat.h>
 #include <inlow/fcntl.h>
+#include <inlow/kernel/addressspace.h>
 #include <inlow/kernel/print.h>
 #include <inlow/kernel/process.h>
 #include <inlow/kernel/syscall.h>
@@ -108,6 +109,45 @@ int Syscall::fstatat(int fd, const char* restrict path, struct stat* restrict re
 			return -1;
 	return vnode->stat(result);
 }
+
+static void* mmapImplementation(void*, size_t size, int protection, int flags, int, off_t)
+{
+	if (size == 0 || !(flags & MAP_PRIVATE))
+	{
+		errno = EINVAL;
+		return MAP_FAILED;
+	}
+	if (flags & MAP_ANONYMOUS)
+	{
+		AddressSpace* addressSpace = Process::current->addressSpace;
+		return (void*) addressSpace->mapMemory(size, protection);
+	}
+	errno = ENOTSUP;
+	return MAP_FAILED;
+}
+
+void* Syscall::mmap(__mmapRequest* request)
+{
+	return mmapImplementation(request->_addr, 
+					request->_size, 
+					request->_protection, 
+					request->_flags,
+				   	request->_fd,
+				   	request->_offset);
+}
+
+int Syscall::munmap(void* addr, size_t size)
+{
+	if (size == 0 || ((vaddr_t) addr & 0xFFF))
+	{
+		errno = EINVAL;
+		return -1;
+	}
+	AddressSpace* addressSpace = Process::current->addressSpace;
+	addressSpace->unmapMemory((vaddr_t) addr, size);
+	return 0;
+}
+
 int Syscall::openat(int fd, const char* path, int flags, mode_t mode)
 {
 	FileDescription* descr = getRootFd(fd, path);
