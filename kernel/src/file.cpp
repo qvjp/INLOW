@@ -9,6 +9,11 @@ FileVnode::FileVnode(const void* data, size_t size, mode_t mode) : Vnode(S_IFREG
 		fileSize = size;
 }
 
+FileVnode::~FileVnode()
+{
+	delete data;
+}
+
 bool FileVnode::isSeekable()
 {
 	return true;

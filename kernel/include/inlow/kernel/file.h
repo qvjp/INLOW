@@ -7,6 +7,7 @@ class FileVnode : public Vnode
 {
 	public:
 			FileVnode(const void* data, size_t size, mode_t mode);
+			~FileVnode();
 			virtual bool isSeekable();
 			virtual ssize_t pread(void* buffer, size_t size, off_t offset);
 	public:

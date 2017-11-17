@@ -266,8 +266,14 @@ Process* Process::regfork(int, struct regfork* registers)
 {
 	Process* process = new Process();
 	process->parent = this;
-	children = (Process**) realloc(children, ++numChildren * sizeof(Process));
-	children[numChildren - 1] = process;
+	Process** newChildren = (Process**) reallocarray(children, numChildren + 1, sizeof(Process**));
+	if (!newChildren)
+	{
+		errno = ENOMEM;
+		return nullptr;	
+	}
+	children = newChildren;
+	children[numChildren++] = process;
 	process->kernelStack = (void*) kernelSpace->mapMemory(0x1000, PROT_READ | PROT_WRITE);
 	process->interruptContext = (InterruptContext*) ((uintptr_t) process->kernelStack + 0x1000 - sizeof(InterruptContext));
 	process->interruptContext->eax = registers->rf_eax;

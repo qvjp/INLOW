@@ -1,4 +1,5 @@
 #include <errno.h>
+#include <stdlib.h>
 #include <string.h>
 #include <inlow/dirent.h>
 #include <inlow/stat.h>
@@ -13,19 +14,27 @@ DirectoryVnode::DirectoryVnode(DirectoryVnode* parent, mode_t mode) : Vnode(S_IF
 	this->parent = parent;
 }
 
-void DirectoryVnode::addChildNode(const char* path, Vnode* vnode)
+DirectoryVnode::~DirectoryVnode()
 {
-	Vnode** newChildNodes = new Vnode*[childCount + 1];
-	const char** newFileNames = new const char*[childCount + 1];
-	memcpy(newChildNodes, childNodes, sizeof(Vnode*) * childCount);
-	memcpy(newFileNames, fileNames, sizeof(const char*) * childCount);
+	free(childNodes);
+	free(fileNames);
+}
 
+bool DirectoryVnode::addChildNode(const char* path, Vnode* vnode)
+{
+	Vnode** newChildNodes = (Vnode**) reallocarray(childNodes, childCount + 1, sizeof(Vnode*));
+	if (!newChildNodes)
+			return false;
+	const char** newFileNames = (const char**) reallocarray(fileNames, childCount + 1, sizeof(const char*));
+	if (!newFileNames)
+			return false;
 	childNodes = newChildNodes;
 	fileNames = newFileNames;
 
 	childNodes[childCount] = vnode;
 	fileNames[childCount] = strdup(path);
 	childCount++;
+	return true;
 }
 
 Vnode* DirectoryVnode::openat(const char* path, int flags, mode_t mode)
