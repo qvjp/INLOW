@@ -99,13 +99,14 @@ AddressSpace::~AddressSpace()
 	PhysicalMemory::pushPageFrame(pageDir);
 }
 
-static MemorySegment segment1(0, 0xC0000000, PROT_NONE, nullptr, nullptr);
-static MemorySegment segment2(0xC0000000, 0x1000, PROT_READ | PROT_WRITE, &segment1, nullptr);
-static MemorySegment segment3((vaddr_t) &kernelVirtualBegin, (vaddr_t) &kernelReadOnlyEnd - (vaddr_t) &kernelVirtualBegin, 
-				PROT_READ | PROT_EXEC, &segment2, nullptr);
-static MemorySegment segment4((vaddr_t) &kernelReadOnlyEnd, (vaddr_t) &kernelVirtualEnd - (vaddr_t) &kernelReadOnlyEnd, 
-				PROT_READ | PROT_WRITE, &segment3, nullptr);
-static MemorySegment segment5(RECURSIVE_MAPPING, -RECURSIVE_MAPPING, PROT_READ | PROT_WRITE, &segment4, nullptr);
+static MemorySegment userSegment(0, 0xC0000000, PROT_NONE, nullptr, nullptr);
+static MemorySegment videoSegment(0xC0000000, 0x1000, PROT_READ | PROT_WRITE, &userSegment, nullptr);
+static MemorySegment readOnlySegment((vaddr_t) &kernelVirtualBegin, (vaddr_t) &kernelReadOnlyEnd - (vaddr_t) &kernelVirtualBegin, 
+				PROT_READ | PROT_EXEC, &videoSegment, nullptr);
+static MemorySegment writableSegment((vaddr_t) &kernelReadOnlyEnd, (vaddr_t) &kernelVirtualEnd - (vaddr_t) &kernelReadOnlyEnd, 
+				PROT_READ | PROT_WRITE, &readOnlySegment, nullptr);
+static MemorySegment physicalMemorySegment(RECURSIVE_MAPPING, -RECURSIVE_MAPPING, PROT_READ | PROT_WRITE, &writableSegment, nullptr);
+static MemorySegment recursiveMappingSegment(RECURSIVE_MAPPING, -RECURSIVE_MAPPING, PROT_READ | PROT_WRITE, &physicalMemorySegment, nullptr);
 
 
 void AddressSpace::initialize()
@@ -123,11 +124,12 @@ void AddressSpace::initialize()
 		kernelSpace->unmap(RECURSIVE_MAPPING);
 
 		// Initialize segment for kernel space
-		kernelSpace->firstSegment = &segment1;
-		segment1.next = &segment2;
-		segment2.next = &segment3;
-		segment3.next = &segment4;
-		segment4.next = &segment5;
+		kernelSpace->firstSegment = &userSegment;
+		userSegment.next = &videoSegment;
+		videoSegment.next = &readOnlySegment;
+		readOnlySegment.next = &writableSegment;
+		writableSegment.next = &physicalMemorySegment;
+		physicalMemorySegment.next = &recursiveMappingSegment;
 }
 
 void AddressSpace::activate()
@@ -319,19 +321,6 @@ vaddr_t AddressSpace::mapPhysical(paddr_t physicalAddress, size_t size, int prot
 			return 0;
 	}
 	return virtualAddress;
-}
-
-vaddr_t AddressSpace::mapPhysical(vaddr_t virtualAddress, paddr_t physicalAddress, size_t size, int protection)
-{
-		MemorySegment::addSegment(firstSegment, virtualAddress, size, protection);
-		for (size_t i = 0; i < size; i += 0x1000)
-		{
-				if (!mapAt(virtualAddress + i, physicalAddress + i, protection))
-				{
-					return 0;
-				}
-		}
-		return virtualAddress;
 }
 
 void AddressSpace::unmap(vaddr_t virtualAddress)

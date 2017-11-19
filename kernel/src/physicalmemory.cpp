@@ -96,7 +96,7 @@ void PhysicalMemory::pushPageFrame(paddr_t physicalAddress)
 		assert(!(physicalAddress & 0xFFF));
 	if(unlikely(stackUnused == 0))
 	{
-		kernelSpace->mapPhysical((vaddr_t) stack - 0x1000 - stackUsed * 4, physicalAddress, 0x1000, PROT_READ | PROT_WRITE);
+		kernelSpace->mapAt((vaddr_t) stack - 0x1000 - stackUsed * 4, physicalAddress, PROT_READ | PROT_WRITE);
 		stackUnused += 1024;
 	}
 	else
@@ -115,7 +115,7 @@ paddr_t PhysicalMemory::popPageFrame()
 		{
 			vaddr_t virt = (vaddr_t) stack - stackUnused * 4;
 			paddr_t result = kernelSpace->getPhysicalAddress(virt);
-			kernelSpace->unmapPhysical(virt, 0x1000);
+			kernelSpace->unmap(virt);
 			stackUnused -= 1024;
 			return result;
 		}
