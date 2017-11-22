@@ -1,12 +1,15 @@
 #include <assert.h>
 #include <stdio.h>
 #include <inlow/kernel/addressspace.h>
+#include <inlow/kernel/kthread.h>
 #include <inlow/kernel/print.h>
 #include <inlow/kernel/physicalmemory.h>
 
 static paddr_t* const stack = (paddr_t*) 0xFFC00000;
 static size_t stackUsed = 0;
 static size_t stackUnused = 0;
+
+static kthread_mutex_t mutex = KTHREAD_MUTEX_INITIALIZER;
 
 extern "C"
 {
@@ -93,7 +96,8 @@ void PhysicalMemory::initialize(multiboot_info* multiboot)
 
 void PhysicalMemory::pushPageFrame(paddr_t physicalAddress)
 {
-		assert(!(physicalAddress & 0xFFF));
+	assert(!(physicalAddress & 0xFFF));
+	AutoLock lock(&mutex);
 	if(unlikely(stackUnused == 0))
 	{
 		kernelSpace->mapAt((vaddr_t) stack - 0x1000 - stackUsed * 4, physicalAddress, PROT_READ | PROT_WRITE);
@@ -109,6 +113,7 @@ void PhysicalMemory::pushPageFrame(paddr_t physicalAddress)
 
 paddr_t PhysicalMemory::popPageFrame()
 {
+	AutoLock lock(&mutex);
 	if (unlikely(stackUsed == 0))
 	{
 		if (likely(stackUnused > 0))

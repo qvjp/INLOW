@@ -26,6 +26,7 @@ extern "C"
 AddressSpace AddressSpace::_kernelSpace;
 AddressSpace* kernelSpace;
 static AddressSpace* firstAddressSpace = nullptr;
+static kthread_mutex_t listMutex = KTHREAD_MUTEX_INITIALIZER;
 
 static inline vaddr_t indexToAddress(size_t pdIndex, size_t ptIndex)
 {
@@ -49,6 +50,11 @@ static inline int protectionToFlags(int protection)
 	return flags;
 }
 
+static vaddr_t mapTemporarily(paddr_t physicalAddress, int protection)
+{
+	return kernelSpace->mapAt(0xFF7FF000, physicalAddress, protection);
+}
+
 AddressSpace::AddressSpace()
 {
 	if (this == &_kernelSpace)
@@ -65,27 +71,32 @@ AddressSpace::AddressSpace()
 
 		vaddr_t kernelPageDir = kernelSpace->pageDirMapped; 
 		pageDirMapped = kernelSpace->mapPhysical(pageDir, 0x1000, PROT_READ | PROT_WRITE);
-		memcpy((void*) pageDirMapped, (const void*) kernelPageDir, 0x1000);
 
 		firstSegment = new MemorySegment(0, 0x1000, PROT_NONE | SEG_NOUNMAP, nullptr, nullptr);
 		MemorySegment::addSegment(firstSegment, 0xC0000000, -0xC0000000, PROT_NONE | SEG_NOUNMAP);
 
 		prev = nullptr;
+		AutoLock lock(&listMutex);
+		memcpy((void*) pageDirMapped, (const void*) kernelPageDir, 0x1000);
 		next = firstAddressSpace;
 		if (next)
 			next->prev = this;
 		firstAddressSpace = this;
 	}
+	mutex = KTHREAD_MUTEX_INITIALIZER;
 }
 
 AddressSpace::~AddressSpace()
 {
+	kthread_mutex_lock(&listMutex);
 	if (prev)
 		prev->next = next;
 	if (next)
 		next->prev = prev;
 	if (this == firstAddressSpace)
 		firstAddressSpace = next;
+
+	kthread_mutex_unlock(&listMutex);
 
 	MemorySegment* currentSegment = firstSegment;
 	while (currentSegment)
@@ -105,7 +116,8 @@ static MemorySegment readOnlySegment((vaddr_t) &kernelVirtualBegin, (vaddr_t) &k
 				PROT_READ | PROT_EXEC, &videoSegment, nullptr);
 static MemorySegment writableSegment((vaddr_t) &kernelReadOnlyEnd, (vaddr_t) &kernelVirtualEnd - (vaddr_t) &kernelReadOnlyEnd, 
 				PROT_READ | PROT_WRITE, &readOnlySegment, nullptr);
-static MemorySegment physicalMemorySegment(RECURSIVE_MAPPING, -RECURSIVE_MAPPING, PROT_READ | PROT_WRITE, &writableSegment, nullptr);
+static MemorySegment temporarySegment(0xFF7FF000, 0x1000, PROT_NONE, &writableSegment, nullptr);
+static MemorySegment physicalMemorySegment(RECURSIVE_MAPPING - 0x400000, 0x400000, PROT_READ | PROT_WRITE, &temporarySegment, nullptr);
 static MemorySegment recursiveMappingSegment(RECURSIVE_MAPPING, -RECURSIVE_MAPPING, PROT_READ | PROT_WRITE, &physicalMemorySegment, nullptr);
 
 
@@ -128,7 +140,8 @@ void AddressSpace::initialize()
 		userSegment.next = &videoSegment;
 		videoSegment.next = &readOnlySegment;
 		readOnlySegment.next = &writableSegment;
-		writableSegment.next = &physicalMemorySegment;
+		writableSegment.next = &temporarySegment;
+		temporarySegment.next = &physicalMemorySegment;
 		physicalMemorySegment.next = &recursiveMappingSegment;
 }
 
@@ -137,10 +150,12 @@ void AddressSpace::activate()
 	asm volatile ("mov %0, %%cr3" :: "r"(pageDir));
 }
 
+static kthread_mutex_t forkMutex = KTHREAD_MUTEX_INITIALIZER;
+
 AddressSpace* AddressSpace::fork()
 {
+	AutoLock lock(&forkMutex);
 	AddressSpace* result = new AddressSpace();
-
 	MemorySegment* segment = firstSegment->next;
 	while (segment)
 	{
@@ -180,23 +195,19 @@ paddr_t AddressSpace::getPhysicalAddress(vaddr_t virtualAddress)
 	}
 	else
 	{
-		pageTable = (uintptr_t*) kernelSpace->map(pageDirectory[pdIndex] & ~0xFFF, PROT_READ);
+		kthread_mutex_lock(&kernelSpace->mutex);
+		pageTable = (uintptr_t*) mapTemporarily(pageDirectory[pdIndex] & ~0xFFF, PROT_READ);
 	}
 	paddr_t result = pageTable[ptIndex] & ~0xFFF;
 
 	if (this != kernelSpace)
 	{
 		kernelSpace->unmap((vaddr_t) pageTable);
+		kthread_mutex_unlock(&kernelSpace->mutex);
 	}
 	return result;
 }
 
-vaddr_t AddressSpace::map(paddr_t physicalAddress, int protection)
-{
-	assert(this == kernelSpace);
-	vaddr_t address = MemorySegment::findFreeSegment(firstSegment, 0x1000);
-	return mapAt(address, physicalAddress, protection);
-}
 
 vaddr_t AddressSpace::mapAt(vaddr_t virtualAddress, paddr_t physicalAddress, int protection)
 {
@@ -242,12 +253,14 @@ vaddr_t AddressSpace::mapAtWithFlags(size_t pdIndex, size_t ptIndex, paddr_t phy
 			pageDirectory[pdIndex] = pageTablePhys | pdFlags;
 			if (this != kernelSpace)
 			{
-				pageTable = (uintptr_t*) kernelSpace->map(pageTablePhys, PROT_READ | PROT_WRITE);
+				kthread_mutex_lock(&kernelSpace->mutex);
+				pageTable = (uintptr_t*)mapTemporarily(pageTablePhys, PROT_READ | PROT_WRITE);
 			}
 			memset(pageTable, 0, 0x1000);
 
 			if(this == kernelSpace)
 			{
+				AutoLock lock(&listMutex);
 				AddressSpace* addressSpace = firstAddressSpace;
 				while (addressSpace)
 				{
@@ -259,13 +272,15 @@ vaddr_t AddressSpace::mapAtWithFlags(size_t pdIndex, size_t ptIndex, paddr_t phy
 		}
 		else if (this != kernelSpace)
 		{
-			pageTable = (uintptr_t*) kernelSpace->map(pageDirectory[pdIndex] & ~0xFFF, PROT_READ | PROT_WRITE);	
+			kthread_mutex_lock(&kernelSpace->mutex);
+			pageTable = (uintptr_t*)mapTemporarily(pageDirectory[pdIndex] & ~0xFFF, PROT_READ | PROT_WRITE);	
 		}
 		pageTable[ptIndex] = physicalAddress | flags;
 
 		if (this != kernelSpace)
 		{
 			kernelSpace->unmap((vaddr_t) pageTable);
+			kthread_mutex_unlock(&kernelSpace->mutex);
 		}
 		vaddr_t virtualAddress = indexToAddress(pdIndex, ptIndex);
 
@@ -276,18 +291,24 @@ vaddr_t AddressSpace::mapAtWithFlags(size_t pdIndex, size_t ptIndex, paddr_t phy
 
 vaddr_t AddressSpace::mapFromOtherAddressSpace(AddressSpace* sourceSpace, vaddr_t sourceVirtualAddress, size_t size, int protection)
 {
+		kthread_mutex_lock(&mutex);
 		vaddr_t destination = MemorySegment::findAndAddNewSegment(firstSegment, size, protection);
+		kthread_mutex_unlock(&mutex);
 
 		for (size_t i = 0; i < size; i+= 0x1000)
 		{
+				kthread_mutex_unlock(&sourceSpace->mutex);
 				paddr_t physicalAddress = sourceSpace->getPhysicalAddress(sourceVirtualAddress + i);
-				if (!physicalAddress || !mapAt(destination + i, physicalAddress, protection))
-						return 0;
+				kthread_mutex_unlock(&sourceSpace->mutex);
+				kthread_mutex_lock(&mutex);
+				mapAt(destination + i, physicalAddress, protection);
+				kthread_mutex_unlock(&mutex);
 		}
 		return destination;
 }
 vaddr_t AddressSpace::mapMemory(size_t size, int protection)
 {
+	AutoLock lock(&mutex);
 	vaddr_t virtualAddress = MemorySegment::findAndAddNewSegment(firstSegment, size, protection);
 	paddr_t physicalAddress;
 	for (size_t i = 0; i < size; i += 0x1000)
@@ -300,6 +321,7 @@ vaddr_t AddressSpace::mapMemory(size_t size, int protection)
 }
 vaddr_t AddressSpace::mapMemory(vaddr_t virtualAddress, size_t size, int protection)
 {
+	AutoLock lock(&mutex);
 	MemorySegment::addSegment(firstSegment, virtualAddress, size, protection);
 	paddr_t physicalAddress;
 	for (size_t i = 0; i < size; i += 0x1000)
@@ -314,6 +336,7 @@ vaddr_t AddressSpace::mapMemory(vaddr_t virtualAddress, size_t size, int protect
 
 vaddr_t AddressSpace::mapPhysical(paddr_t physicalAddress, size_t size, int protection)
 {
+	AutoLock lock(&mutex);
 	vaddr_t virtualAddress = MemorySegment::findAndAddNewSegment(firstSegment, size, protection);
 	for (size_t i = 0; i < size; i += 0x1000)
 	{
@@ -325,13 +348,14 @@ vaddr_t AddressSpace::mapPhysical(paddr_t physicalAddress, size_t size, int prot
 
 void AddressSpace::unmap(vaddr_t virtualAddress)
 {
-		size_t pdIndex, ptIndex;
-		addressToIndex(virtualAddress, pdIndex, ptIndex);
-		mapAtWithFlags(pdIndex, ptIndex, 0, 0);
+	size_t pdIndex, ptIndex;
+	addressToIndex(virtualAddress, pdIndex, ptIndex);
+	mapAtWithFlags(pdIndex, ptIndex, 0, 0);
 }
 
 void AddressSpace::unmapMemory(vaddr_t virtualAddress, size_t size)
 {
+	AutoLock lock(&mutex);
 	for (size_t i = 0; i < size; i += 0x1000)
 	{
 		paddr_t physicalAddress = getPhysicalAddress(virtualAddress + i);
@@ -343,9 +367,10 @@ void AddressSpace::unmapMemory(vaddr_t virtualAddress, size_t size)
 
 void AddressSpace::unmapPhysical(vaddr_t virtualAddress, size_t size)
 {
-		for (size_t i = 0; i < size; i += 0x1000)
-		{
-				unmap(virtualAddress + i);
-		}
-		MemorySegment::removeSegment(firstSegment, virtualAddress, size);
+	AutoLock lock(&mutex);
+	for (size_t i = 0; i < size; i += 0x1000)
+	{
+			unmap(virtualAddress + i);
+	}
+	MemorySegment::removeSegment(firstSegment, virtualAddress, size);
 }

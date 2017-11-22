@@ -70,6 +70,7 @@ Chunk* __unifyChunks(Chunk* first, Chunk* second)
 	return first;
 }
 
+#ifdef __is_inlow_libc
 void __lockHeap(void)
 {
 }
@@ -77,3 +78,4 @@ void __lockHeap(void)
 void __unlockHeap(void)
 {
 }
+#endif

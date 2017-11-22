@@ -1,3 +1,4 @@
+#include <sched.h>
 #include <inlow/kernel/kernel.h>
 #include <inlow/kernel/terminal.h>
 #include <inlow/kernel/vgaterminal.h>
@@ -27,6 +28,7 @@ Terminal::Terminal() : Vnode(S_IFCHR)
 	termio.c_cc[VTIME] = 0;
 
 	numEof = 0;
+	mutex = KTHREAD_MUTEX_INITIALIZER;
 }
 
 void Terminal::handleCharacter(char c)
@@ -145,6 +147,7 @@ ssize_t Terminal::read(void* buffer, size_t size)
 					return readSize;
 				}
 			}
+			sched_yield();
 		}
 		if (numEof)
 		{
@@ -181,6 +184,7 @@ int Terminal::tcsetattr(int flags, const struct termios* termio)
 
 ssize_t Terminal::write(const void* buffer, size_t size)
 {
+	AutoLock lock(&mutex);
 	const char* buf = (const char*) buffer;
 
 	for (size_t i = 0; i < size; i++)

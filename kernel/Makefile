@@ -33,6 +33,7 @@ OBJ = addressspace.o \
 		interrupts.o \
 		kernel.o \
 		keyboard.o \
+		kthread.o \
 		libk.o \
 		print.o \
 		memorysegment.o \

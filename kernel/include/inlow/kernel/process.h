@@ -6,6 +6,7 @@
 #include <inlow/kernel/addressspace.h>
 #include <inlow/kernel/filedescription.h>
 #include <inlow/kernel/interrupts.h>
+#include <inlow/kernel/kthread.h>
 
 #define OPEN_MAX 20
 
@@ -19,9 +20,7 @@ class Process
 			int execute(FileDescription* descr, char* const argv[], char* const envp[]);
 			int registerFileDescriptor(FileDescription* descr);
 			Process* waitpid(pid_t pid, int flags);
-	private:
-			int copyArguments(char* const argv[], char* const envp[], char**& newArgv, char**& newEnvp, AddressSpace* newAddressSpace);
-			uintptr_t loadELF(uintptr_t elf, AddressSpace* newAddressSpace);
+
 	private:
 			InterruptContext* interruptContext;
 			Process* prev;
@@ -33,6 +32,7 @@ class Process
 			Process* parent;
 			Process** children;
 			size_t numChildren;
+			kthread_mutex_t childrenMutex;
 
 	public:
 			AddressSpace* addressSpace;
@@ -46,6 +46,9 @@ class Process
 			static void initialize(FileDescription* rootFd);
 			static InterruptContext* schedule(InterruptContext* context);
 			static Process* current;
+	private:
+			int copyArguments(char* const argv[], char* const envp[], char**& newArgv, char**& newEnvp, AddressSpace* newAddressSpace);
+			static uintptr_t loadELF(uintptr_t elf, AddressSpace* newAddressSpace);
 };
 
 void setKernelStack(uintptr_t stack);

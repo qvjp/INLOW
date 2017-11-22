@@ -1,9 +1,12 @@
 #include <assert.h>
 #include <string.h>
 #include <inlow/kernel/addressspace.h>
+#include <inlow/kernel/kthread.h>
 #include <inlow/kernel/memorysegment.h>
+#include <inlow/kernel/physicalmemory.h>
 
 static char segmentPage[0x1000] ALIGNED(0x1000) = {0};
+static kthread_mutex_t mutex = KTHREAD_MUTEX_INITIALIZER;
 
 static inline size_t getFreeSpaceAfter(MemorySegment* segment)
 {
@@ -40,6 +43,7 @@ void MemorySegment::addSegment(MemorySegment* firstSegment, MemorySegment* newSe
 
 void MemorySegment::addSegment(MemorySegment* firstSegment, vaddr_t address, size_t size, int protection)
 {
+	AutoLock lock(&mutex);
 	MemorySegment* newSegment = allocateSegment(address, size, protection);
 	addSegment(firstSegment, newSegment);
 	verifySegmentList();
@@ -55,7 +59,7 @@ MemorySegment* MemorySegment::allocateSegment(vaddr_t address, size_t size, int 
 		if (((uintptr_t) current & 0xFFF) == (0x1000 - 0x1000 % sizeof(MemorySegment)))
 		{
 			MemorySegment** nextPage = (MemorySegment**) current;
-			assert(nextPage != nullptr);
+			assert(*nextPage != nullptr);
 			current = *nextPage;
 		}
 	}
@@ -74,6 +78,7 @@ void MemorySegment::deallocateSegment(MemorySegment* segment)
 
 void MemorySegment::removeSegment(MemorySegment* firstSegment, vaddr_t address, size_t size)
 {
+	AutoLock lock(&mutex);
 	MemorySegment* currentSegment = firstSegment;
 	while (currentSegment->address + currentSegment->size <= address)
 	{
@@ -146,6 +151,7 @@ void MemorySegment::removeSegment(MemorySegment* firstSegment, vaddr_t address, 
 		}
 		currentSegment = currentSegment->next;
 	}
+	verifySegmentList();
 }
 
 vaddr_t MemorySegment::findFreeSegment(MemorySegment* firstSegment, size_t size)
@@ -163,8 +169,11 @@ vaddr_t MemorySegment::findFreeSegment(MemorySegment* firstSegment, size_t size)
 
 vaddr_t MemorySegment::findAndAddNewSegment(MemorySegment* firstSegment, size_t size, int protection)
 {
+	AutoLock lock(&mutex);
 	vaddr_t address = findFreeSegment(firstSegment, size);
-	addSegment(firstSegment, address, size, protection);
+	MemorySegment* newSegment = allocateSegment(address, size, protection);
+	addSegment(firstSegment, newSegment);
+	verifySegmentList();
 	return address;
 }
 
@@ -174,11 +183,15 @@ void MemorySegment::verifySegmentList()
 	MemorySegment** nextPage;
 
 	int freeSegmentSpaceFound = 0;
+	MemorySegment* freeSegment = nullptr;
 
 	while (true)
 	{
 		if (current->address == 0 && current->size == 0)
-				freeSegmentSpaceFound++;
+		{
+			freeSegment = current;
+			freeSegmentSpaceFound++;
+		}
 
 		current++;
 		if (((uintptr_t) current & 0xFFF) == (0x1000 - 0x1000 % sizeof(MemorySegment)))
@@ -192,8 +205,15 @@ void MemorySegment::verifySegmentList()
 
 	if (freeSegmentSpaceFound == 1)
 	{
-		*nextPage = (MemorySegment*) kernelSpace->mapMemory(0x1000, PROT_READ | PROT_WRITE);
+		vaddr_t address = findFreeSegment(kernelSpace->firstSegment, 0x1000);
+		paddr_t physical = PhysicalMemory::popPageFrame();
+		kernelSpace->mapAt(address, physical, PROT_READ | PROT_WRITE);
+		*nextPage = (MemorySegment*) address;
 		memset(*nextPage, 0, 0x1000);
+		freeSegment->address = address;
+		freeSegment->size = 0x1000;
+		freeSegment->flags = PROT_READ | PROT_WRITE;
+		addSegment(kernelSpace->firstSegment, freeSegment);
 	}
 
 }

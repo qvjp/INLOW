@@ -2,6 +2,7 @@
 #define KERNEL_ADDRESSSPACE_H
 
 #include <inlow/mman.h>
+#include <inlow/kernel/kthread.h>
 #include <inlow/kernel/memorysegment.h>
 
 class AddressSpace
@@ -21,16 +22,18 @@ class AddressSpace
 			void unmapMemory(vaddr_t virtualAddress, size_t size);
 			void unmapPhysical(vaddr_t firstVirtualAddress, size_t size);
 	private:
-			vaddr_t map(paddr_t physicalAddress, int protection);
 			vaddr_t mapAt(size_t pdIndex, size_t ptIndex, paddr_t physicalAddress, int protection);
 			vaddr_t mapAtWithFlags(size_t pdIndex, size_t ptIndex, paddr_t physicalAddress, int flags);
+
+	public:
+			MemorySegment* firstSegment;
 
 	private:
 			paddr_t pageDir;
 			vaddr_t pageDirMapped;
-			MemorySegment* firstSegment;
 			AddressSpace* prev;
 			AddressSpace* next;
+			kthread_mutex_t mutex;
 
 	public:
 			static void initialize();
