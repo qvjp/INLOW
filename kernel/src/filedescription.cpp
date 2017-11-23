@@ -1,3 +1,10 @@
+#include <errno.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <inlow/fcntl.h>
+#include <inlow/kernel/directory.h>
+#include <inlow/kernel/file.h>
 #include <inlow/kernel/filedescription.h>
 
 FileDescription::FileDescription(Vnode* vnode)
@@ -8,9 +15,52 @@ FileDescription::FileDescription(Vnode* vnode)
 
 FileDescription* FileDescription::openat(const char* path, int flags, mode_t mode)
 {
-	Vnode* node = vnode->openat(path, flags, mode);
+	Vnode* node = resolvePath(vnode, path);
 	if (!node)
+	{
+		if (!(flags & O_CREAT))
+			return nullptr;	
+		char* pathCopy = strdup(path);
+		char* slash = strrchr(pathCopy, '/');
+		char* newFileName;
+
+		if (!slash || slash == pathCopy)
+		{
+			node = vnode;
+			newFileName = slash ? pathCopy + 1 : pathCopy;
+		}
+		else
+		{
+			*slash = '\0';
+			newFileName = slash + 1;
+			node = resolvePath(vnode, pathCopy);
+			if (!node)
+			{
+				free(pathCopy);
+				return nullptr;
+			}
+		}
+		if (!S_ISDIR(node->mode))
+		{
+			free(pathCopy);
+			errno = ENOTDIR;
 			return nullptr;
+		}
+
+		FileVnode* file = new FileVnode(nullptr, 0, mode & 07777);
+		DirectoryVnode* directory = (DirectoryVnode*) node;
+		if (!directory->addChildNode(newFileName, file))
+		{
+			free(pathCopy);
+			delete file;
+			return nullptr;
+		}
+
+		free(pathCopy);
+		node = file;
+	}
+	if (flags & O_TRUNC)
+		node->ftruncate(0);
 	return new FileDescription(node);
 }
 

@@ -42,13 +42,13 @@ extern "C" void kernel_main(uint32_t, paddr_t multibootAddress)
 		
 		Print::printf("Initializing process...\n");
 		Process::initialize(rootFd);
-		FileVnode* program = (FileVnode*) rootDir->openat("/bin/sh", 0, 0);
+		FileVnode* program = (FileVnode*)resolvePath(rootDir, "/bin/sh");
 		if (program)
 		{
 				Process* newProcess = new Process();
 				const char* argv[] = { "/bin/sh", nullptr };
 				const char* envp[] = { "PATH=/bin", nullptr };
-				newProcess->execute(new FileDescription(program), (char**) argv, (char**) envp);
+				newProcess->execute(program, (char**) argv, (char**) envp);
 				Process::addProcess(newProcess);
 		}
 

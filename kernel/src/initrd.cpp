@@ -48,7 +48,7 @@ DirectoryVnode* Initrd::loadInitrd(vaddr_t initrd)
 				char* path2 = strdup(path);
 				char* dirName = dirname(path);
 				char* fileName = basename(path2);
-				DirectoryVnode* directory = (DirectoryVnode*) root->openat(dirName, 0, 0);
+				DirectoryVnode* directory = (DirectoryVnode*)resolvePath(root, dirName);
 				if (!directory)
 				{
 						Print::printf("Could not add '%s' to nonexistent directory '%s'.\n", fileName, dirName);

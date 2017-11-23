@@ -65,9 +65,10 @@ int Syscall::close(int fd)
 
 int Syscall::execve(const char* path, char* const argv[], char* const envp[])
 {
-	FileDescription* descr = getRootFd(AT_FDCWD, path)->openat(path, 0, 0);
+	FileDescription* descr = getRootFd(AT_FDCWD, path);
+	Vnode* vnode = resolvePath(descr->vnode, path);
 
-	if (!descr || Process::current->execute(descr, argv, envp) == -1)
+	if (!vnode || Process::current->execute(vnode, argv, envp) == -1)
 	{
 		return -1;
 	}
@@ -104,7 +105,7 @@ int Syscall::fstatat(int fd, const char* restrict path, struct stat* restrict re
 {
 	FileDescription* descr = getRootFd(fd, path);
 
-	Vnode* vnode = descr->vnode->openat(path, 0, 0);
+	Vnode* vnode = resolvePath(descr->vnode, path);
 	if (!vnode)
 			return -1;
 	return vnode->stat(result);
@@ -151,7 +152,7 @@ int Syscall::munmap(void* addr, size_t size)
 int Syscall::openat(int fd, const char* path, int flags, mode_t mode)
 {
 	FileDescription* descr = getRootFd(fd, path);
-	FileDescription* result = descr->openat(path, flags,mode);
+	FileDescription* result = descr->openat(path, flags,mode & ~Process::current->umask);
 	if (!result)
 			return -1;
 	return Process::current->registerFileDescriptor(result);

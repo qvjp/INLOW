@@ -17,7 +17,7 @@ class Process
 			~Process();
 			void exit(int status);
 			Process* regfork(int flags, struct regfork* registers);
-			int execute(FileDescription* descr, char* const argv[], char* const envp[]);
+			int execute(Vnode* vnode, char* const argv[], char* const envp[]);
 			int registerFileDescriptor(FileDescription* descr);
 			Process* waitpid(pid_t pid, int flags);
 
@@ -41,6 +41,7 @@ class Process
 			FileDescription* cwdFd;
 			pid_t pid;
 			int status;
+			mode_t umask;
 	public:
 			static void addProcess(Process* process);
 			static void initialize(FileDescription* rootFd);
