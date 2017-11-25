@@ -21,7 +21,8 @@ PROGRAMS = \
 		   snake \
 		   true \
 		   uname \
-		   version
+		   version \
+		   miv
 
 all: $(addprefix $(BUILD)/, $(PROGRAMS))
 

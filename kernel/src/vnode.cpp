@@ -82,6 +82,12 @@ ssize_t Vnode::pread(void*, size_t, off_t)
 	return -1;
 }
 
+ssize_t Vnode::pwrite(const void*, size_t, off_t)
+{
+	errno = EBADF;
+	return -1;
+}
+
 ssize_t Vnode::read(void*, size_t)
 {
 	errno = EBADF;
