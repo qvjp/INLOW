@@ -15,6 +15,8 @@
 
 struct stat
 {
+	__dev_t st_dev;
+	__ino_t st_ino;
 	__mode_t st_mode;
 };
 

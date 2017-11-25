@@ -4,9 +4,18 @@
 #include <sys/stat.h>
 #include <inlow/kernel/vnode.h>
 
-Vnode::Vnode(mode_t mode)
+static ino_t nextIno = 0;
+
+Vnode::Vnode(mode_t mode, dev_t dev, ino_t ino)
 {
 	this->mode = mode;
+	this->dev = dev;
+	this->ino = ino;
+
+	if (!ino)
+	{
+		this->ino = nextIno++;
+	}
 }
 
 Vnode* resolvePath(Vnode* vnode, const char* path)
@@ -114,6 +123,8 @@ int Vnode::tcsetattr(int, const struct termios*)
 
 int Vnode::stat(struct stat* result)
 {
+	result->st_dev = dev;
+	result->st_ino = ino;
 	result->st_mode = mode;
 	return 0;
 }
