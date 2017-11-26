@@ -25,6 +25,7 @@ static const void* syscallList[NUM_SYSCALLS] = {
 	(void*) Syscall::tcsetattr,
 	(void*) Syscall::fchdirat,
 	(void*) Syscall::confstr,
+	(void*) Syscall::fstat,
 };
 
 static FileDescription* getRootFd(int fd, const char* path)
@@ -99,6 +100,12 @@ int Syscall::fchdirat(int fd, const char* path)
 	delete Process::current->cwdFd;
 	Process::current->cwdFd = newCwd;
 	return 0;
+}
+
+int Syscall::fstat(int fd, struct stat* result)
+{
+	FileDescription* descr = Process::current->fd[fd];
+	return descr->vnode->stat(result);
 }
 
 int Syscall::fstatat(int fd, const char* restrict path, struct stat* restrict result, int)
