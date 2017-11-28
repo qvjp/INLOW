@@ -28,6 +28,11 @@ extern "C" {
 		long strtol(const char* __restrict, char** __restrict, int);
 		unsigned long strtoul(const char* __restrict, char** __restrict, int);
 
+#if __USE_INLOW || __USE_POSIX
+		int setenv(const char*, const char*, int);
+		int unsetenv(const char*);
+#endif
+
 #if __USE_INLOW
 		char* canonicalize_file_name(const char*);
 		void* reallocarray(void*, size_t, size_t);
