@@ -1,6 +1,7 @@
 #include "utils.h"
 #include <err.h>
 #include <getopt.h>
+#include <limits.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,8 +9,12 @@
 #include <unistd.h>
 #include <sys/wait.h>
 
+static char* pwd;
+static size_t pwdSize;
+
 static int executeCommand(int argc, char* arguments[]);
 static const char* getExecutablePath(const char* command);
+static void updateLogicalPwd(const char* path);
 
 static int cd(int argc, char* argv[]);
 
@@ -35,16 +40,43 @@ int main(int argc, char* argv[])
 		}
 	}
 
+	pwd = getenv("PWD");
+	if (pwd)
+	{
+		pwd = strdup(pwd);
+	}
+	else
+	{
+		pwd = getcwd(NULL, 0);
+		if (pwd)
+		{
+			setenv("PWD", pwd, 1);
+		}
+	}
+	pwdSize = pwd ? strlen(pwd) : 0;
+
 	char* buffer = NULL;
 	size_t bufferSize = 0;
+
+	const char* username = getlogin();
+	if (!username)
+	{
+		username = "?";
+	}
+	char hostname[HOST_NAME_MAX + 1];
+	if (gethostname(hostname, sizeof(hostname)) < 0)
+	{
+		strcpy(hostname, "?");
+	}
 
 	while (true)
 	{
 		//fputs("$>", stderr);
-		fprintf(stderr, "\e[32m%s\e[22;39m", "$>");
+		fprintf(stderr, "\e[33m%s@%s \e[1;36m%s $>\e[22;39m", username, hostname, pwd ? pwd : ".");
 		ssize_t length = getline(&buffer, &bufferSize, stdin);
 		if (length < 0)
 		{
+			putchar('\n');
 			if (feof(stdin))
 					exit(0);
 			err(1, NULL);
@@ -153,6 +185,70 @@ static const char* getExecutablePath(const char* command)
 	return NULL;
 }
 
+static void updateLogicalPwd(const char* path)
+{
+	if (!pwd)
+	{
+		pwd = getcwd(NULL, 0);
+		pwdSize = pwd ? strlen(pwd) : 0;
+		return;
+	}
+
+	if (*path == '/')
+	{
+		strcpy(pwd, "/");
+	}
+
+	size_t newSize = strlen(pwd) + strlen(path) + 2;
+	if (newSize > pwdSize)
+	{
+		char* newPwd = realloc(pwd, newSize);
+		if (!newPwd)
+		{
+			free(pwd);
+			pwd = NULL;
+			return;
+		}
+		pwd = newPwd;
+		pwdSize = newSize;
+	}
+	char* pwdEnd = pwd + strlen(pwd);
+	const char* component = path;
+	size_t componentLength = strcspn(component, "/");
+
+	while (*component)
+	{
+		if (componentLength == 0 || (componentLength == 1 && strncmp(component, ".", 1) == 0))
+		{
+			
+		}
+		else if (componentLength == 2 && strncmp(component, "..", 2) == 0)
+		{
+			char* lastSlash = strrchr(pwd, '/');
+			if (lastSlash == pwd)
+			{
+				pwdEnd = pwd + 1;
+			}
+			else if (lastSlash)
+			{
+				pwdEnd = lastSlash;
+			}
+		}
+		else
+		{
+			if (pwdEnd != pwd + 1)
+			{
+				*pwdEnd++ = '/';
+			}
+			memcpy(pwdEnd, component, componentLength);
+			pwdEnd += componentLength;
+		}
+		component += componentLength + 1;
+		componentLength = strcspn(component, "/");
+	}
+	*pwdEnd = '\0';
+}
+
 static int cd(int argc, char* argv[])
 {
 	const char* newCwd;
@@ -174,6 +270,12 @@ static int cd(int argc, char* argv[])
 	{
 		warn("cd: '%s'", newCwd);
 		return 1;
+	}
+
+	updateLogicalPwd(newCwd);
+	if (!pwd || setenv("PWD", pwd, 1) < 0)
+	{
+		unsetenv("PWD");
 	}
 
 	return 0;
