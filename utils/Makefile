@@ -16,6 +16,7 @@ PROGRAMS = \
 		   echo \
 		   false \
 		   ls \
+		   mkdir \
 		   pwd \
 		   sh \
 		   sleep \

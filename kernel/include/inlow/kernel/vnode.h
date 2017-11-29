@@ -10,6 +10,7 @@ class Vnode
 			virtual int ftruncate(off_t length);
 			virtual Vnode* getChildNode(const char* path);
 			virtual bool isSeekable();
+			virtual int mkdir(const char* name, mode_t mode);
 			virtual ssize_t pread(void* buffer, size_t size, off_t offset);
 			virtual ssize_t pwrite(const void* buffer, size_t size, off_t offset);
 			virtual ssize_t read(void* buffer, size_t size);
