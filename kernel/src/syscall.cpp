@@ -1,5 +1,7 @@
 #include <errno.h>
 #include <sched.h>
+#include <stdlib.h>
+#include <string.h>
 #include <sys/stat.h>
 #include <inlow/fcntl.h>
 #include <inlow/kernel/addressspace.h>
@@ -26,6 +28,7 @@ static const void* syscallList[NUM_SYSCALLS] = {
 	(void*) Syscall::fchdirat,
 	(void*) Syscall::confstr,
 	(void*) Syscall::fstat,
+	(void*) Syscall::mkdirat,
 };
 
 static FileDescription* getRootFd(int fd, const char* path)
@@ -132,6 +135,45 @@ static void* mmapImplementation(void*, size_t size, int protection, int flags, i
 	}
 	errno = ENOTSUP;
 	return MAP_FAILED;
+}
+
+int Syscall::mkdirat(int fd, const char* path, mode_t mode)
+{
+	char* pathCopy = strdup(path);
+	if (!pathCopy)
+		return -1;
+
+	char* slash = strrchr(pathCopy, '/');
+	while (slash && !slash[1])
+	{
+		*slash = '\0';
+		slash = strrchr(pathCopy, '/');
+	}
+
+	char* name;
+	Vnode* vnode = getRootFd(fd, path)->vnode;
+	if (slash)
+	{
+		*slash = '\0';
+		name = slash + 1;
+		if (*pathCopy)
+		{
+			vnode = resolvePath(vnode, pathCopy);
+			if (!vnode)
+			{
+				free(pathCopy);
+				return -1;
+			}
+		}
+	}
+	else
+	{
+		name = pathCopy;
+	}
+
+	int result = vnode->mkdir(name, mode & ~Process::current->umask);
+	free(pathCopy);
+	return result;
 }
 
 void* Syscall::mmap(__mmapRequest* request)
