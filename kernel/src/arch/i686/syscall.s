@@ -2,6 +2,8 @@
 .global syscallHandler
 .type syscallHandler, @function
 syscallHandler:
+	cld
+
 	mov %esp, %ebp
 	and $(~0xFF), %esp
 	sub $12, %esp

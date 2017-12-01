@@ -16,6 +16,8 @@ isr_\no:
 .endm
 
 commonHandler:
+	cld
+
 	push %ebp
 	push %edi
 	push %esi
