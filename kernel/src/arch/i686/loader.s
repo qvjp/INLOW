@@ -13,6 +13,8 @@
 .global _start
 .type _start, @function
 _start:
+	cld
+
 	# Add the page tables to the page directory
     movl $(pageTableBootstrap + 0x3), kernelPageDirectory
     movl $(pageTableKernel + 0x3), kernelPageDirectory + 0xC00
