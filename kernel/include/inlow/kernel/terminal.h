@@ -45,6 +45,6 @@ class Terminal : public Vnode, public KeyboardListener
 			kthread_mutex_t mutex;
 };
 
-extern Terminal terminal;
+extern Reference<Terminal> terminal;
 
 #endif

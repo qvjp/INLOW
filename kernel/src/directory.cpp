@@ -6,13 +6,13 @@
 #include <inlow/kernel/directory.h>
 #include <inlow/kernel/print.h>
 
-DirectoryVnode::DirectoryVnode(DirectoryVnode* parent, mode_t mode, dev_t dev, ino_t ino) : Vnode(S_IFDIR | mode, dev, ino)
+DirectoryVnode::DirectoryVnode(const Reference<DirectoryVnode>& parent, mode_t mode,
+				dev_t dev, ino_t ino) : Vnode(S_IFDIR | mode, dev, ino), parent(parent)
 {
 	childCount = 0;
 	childNodes = nullptr;
 	fileNames = nullptr;
 	mutex = KTHREAD_MUTEX_INITIALIZER;
-	this->parent = parent;
 }
 
 DirectoryVnode::~DirectoryVnode()
@@ -21,15 +21,15 @@ DirectoryVnode::~DirectoryVnode()
 	free(fileNames);
 }
 
-bool DirectoryVnode::addChildNode(const char* name, Vnode* vnode)
+bool DirectoryVnode::addChildNode(const char* name, const Reference<Vnode>& vnode)
 {
 	AutoLock lock(&mutex);
 	return addChildNodeUnlocked(name, vnode);
 }
 
-bool DirectoryVnode::addChildNodeUnlocked(const char* name, Vnode* vnode)
+bool DirectoryVnode::addChildNodeUnlocked(const char* name, const Reference<Vnode>& vnode)
 {
-	Vnode** newChildNodes = (Vnode**) reallocarray(childNodes, childCount + 1, sizeof(Vnode*));
+	Reference<Vnode>* newChildNodes = (Reference<Vnode>*) reallocarray(childNodes, childCount + 1, sizeof(Reference<Vnode>));
 	if (!newChildNodes)
 			return false;
 	const char** newFileNames = (const char**) reallocarray(fileNames, childCount + 1, sizeof(const char*));
@@ -38,19 +38,19 @@ bool DirectoryVnode::addChildNodeUnlocked(const char* name, Vnode* vnode)
 	childNodes = newChildNodes;
 	fileNames = newFileNames;
 
-	childNodes[childCount] = vnode;
+	new (&childNodes[childCount]) Reference<Vnode>(vnode);
 	fileNames[childCount] = strdup(name);
 	childCount++;
 	return true;
 }
 
-Vnode* DirectoryVnode::getChildNode(const char* name)
+Reference<Vnode> DirectoryVnode::getChildNode(const char* name)
 {
 	AutoLock lock(&mutex);
 	return getChildNodeUnlocked(name);
 }
 
-Vnode* DirectoryVnode::getChildNodeUnlocked(const char* name)
+Reference<Vnode> DirectoryVnode::getChildNodeUnlocked(const char* name)
 {
 	if (strcmp(name, ".") == 0)
 	{
@@ -82,12 +82,9 @@ int DirectoryVnode::mkdir(const char* name, mode_t mode)
 		return -1;
 	}
 
-	Vnode* newDirectory = new DirectoryVnode(this, mode, dev, 0);
+	Reference<DirectoryVnode> newDirectory(new DirectoryVnode(this, mode, dev, 0));
 	if (!addChildNodeUnlocked(name, newDirectory))
-	{
-		delete newDirectory;
 		return -1;
-	}
 	return 0;
 }
 
@@ -95,7 +92,7 @@ ssize_t DirectoryVnode::readdir(unsigned long offset, void* buffer, size_t size)
 {
 	AutoLock lock(&mutex);
 	const char* name;
-	Vnode* vnode;
+	Reference<Vnode> vnode;
 	if (offset == 0)
 	{
 			name = ".";

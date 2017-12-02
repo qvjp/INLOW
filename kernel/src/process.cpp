@@ -176,7 +176,7 @@ InterruptContext* Process::schedule(InterruptContext* context)
 	return current->interruptContext;
 }
 
-int Process::execute(Vnode* vnode, char* const argv[], char* const envp[])
+int Process::execute(const Reference<Vnode>& vnode, char* const argv[], char* const envp[])
 {
 	if (!S_ISREG(vnode->mode))
 	{
@@ -185,7 +185,7 @@ int Process::execute(Vnode* vnode, char* const argv[], char* const envp[])
 	}
 
 	// load the program
-	FileVnode* file = (FileVnode*)vnode;
+	Reference<FileVnode> file = (Reference<FileVnode>)vnode;
 	AddressSpace* newAddressSpace = new AddressSpace();
 	uintptr_t entry = loadELF((uintptr_t) file->data, newAddressSpace);
 	if (!entry)
@@ -214,9 +214,9 @@ int Process::execute(Vnode* vnode, char* const argv[], char* const envp[])
 	if (!fdInitialized)
 	{
 		// Initialize file descriptors
-		fd[0] = new FileDescription(&terminal); //stdin
-		fd[1] = new FileDescription(&terminal); //stdout
-		fd[2] = new FileDescription(&terminal); //stderr
+		fd[0] = new FileDescription(terminal); //stdin
+		fd[1] = new FileDescription(terminal); //stdout
+		fd[2] = new FileDescription(terminal); //stderr
 
 		rootFd = new FileDescription(*idleProcess->rootFd);
 		cwdFd = new FileDescription(*rootFd);
