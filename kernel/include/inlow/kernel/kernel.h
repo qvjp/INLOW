@@ -16,4 +16,20 @@ typedef struct _incomplete_type symbol_t;
 
 typedef uintptr_t paddr_t;
 typedef uintptr_t vaddr_t;
+
+inline void* operator new(size_t, void* addr)
+{
+	return addr;
+}
+inline void* operator new[](size_t, void* addr)
+{
+	return addr;
+}
+inline void operator delete(void*, void*)
+{
+}
+inline void operator delete[](void*, void*)
+{
+}
+
 #endif

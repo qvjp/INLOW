@@ -70,7 +70,7 @@ int Syscall::close(int fd)
 int Syscall::execve(const char* path, char* const argv[], char* const envp[])
 {
 	FileDescription* descr = getRootFd(AT_FDCWD, path);
-	Vnode* vnode = resolvePath(descr->vnode, path);
+	Reference<Vnode> vnode = resolvePath(descr->vnode, path);
 
 	if (!vnode || Process::current->execute(vnode, argv, envp) == -1)
 	{
@@ -115,7 +115,7 @@ int Syscall::fstatat(int fd, const char* restrict path, struct stat* restrict re
 {
 	FileDescription* descr = getRootFd(fd, path);
 
-	Vnode* vnode = resolvePath(descr->vnode, path);
+	Reference<Vnode> vnode = resolvePath(descr->vnode, path);
 	if (!vnode)
 			return -1;
 	return vnode->stat(result);
@@ -151,7 +151,7 @@ int Syscall::mkdirat(int fd, const char* path, mode_t mode)
 	}
 
 	char* name;
-	Vnode* vnode = getRootFd(fd, path)->vnode;
+	Reference<Vnode> vnode = getRootFd(fd, path)->vnode;
 	if (slash)
 	{
 		*slash = '\0';

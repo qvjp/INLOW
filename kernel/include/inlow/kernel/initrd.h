@@ -6,7 +6,7 @@
 
 namespace Initrd
 {
-	DirectoryVnode* loadInitrd(vaddr_t initrd);
+	Reference<DirectoryVnode> loadInitrd(vaddr_t initrd);
 }
 
 #endif

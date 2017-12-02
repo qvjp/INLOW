@@ -13,7 +13,7 @@
 #define INLOW_VERSION ""
 #endif
 
-static DirectoryVnode* loadInitrd(multiboot_info* multiboot);
+static Reference<DirectoryVnode> loadInitrd(multiboot_info* multiboot);
 
 static multiboot_info multiboot;
 
@@ -37,12 +37,12 @@ extern "C" void kernel_main(uint32_t, paddr_t multibootAddress)
 
 		// Load the initrd
 		Print::printf("Loading Initrd...\n");
-		DirectoryVnode* rootDir = loadInitrd(&multiboot);
+		Reference<DirectoryVnode> rootDir = loadInitrd(&multiboot);
 		FileDescription* rootFd = new FileDescription(rootDir);
 		
 		Print::printf("Initializing process...\n");
 		Process::initialize(rootFd);
-		FileVnode* program = (FileVnode*)resolvePath(rootDir, "/bin/sh");
+		Reference<Vnode> program = resolvePath(rootDir, "/bin/sh");
 		if (program)
 		{
 				Process* newProcess = new Process();
@@ -66,9 +66,9 @@ extern "C" void kernel_main(uint32_t, paddr_t multibootAddress)
 
 }
 
-static DirectoryVnode* loadInitrd(multiboot_info* multiboot)
+static Reference<DirectoryVnode> loadInitrd(multiboot_info* multiboot)
 {
-		DirectoryVnode* root = nullptr;
+		Reference<DirectoryVnode> root;
 		paddr_t modulesAligned = multiboot->mods_addr & ~0xFFF;
 		ptrdiff_t offset = multiboot->mods_addr - modulesAligned;
 		size_t mappedSize = ALIGNUP(offset + multiboot->mods_count * sizeof(multiboot_mod_list), 0x1000);

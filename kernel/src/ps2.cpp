@@ -101,7 +101,7 @@ static void checkPort1()
 {
 #ifdef BROKEN_PS2_EMULATION
 		PS2Keyboard* keyboard = new PS2Keyboard();
-		keyboard->listener = &terminal;
+		keyboard->listener = (Terminal*)terminal;
 
 		ps2Device1 = keyboard;
 		Interrupts::irqHandlers[i] = irqHandler;
@@ -120,7 +120,7 @@ static void checkPort1()
 				if (id == 0x41 || id == 0xC1 || id == 0x83)
 				{
 						PS2Keyboard* keyboard = new PS2Keyboard();
-						keyboard->listener = &terminal;
+						keyboard->listener = (Terminal*)terminal;
 
 						ps2Device1 = keyboard;
 						Interrupts::irqHandlers[1] = irqHandler;

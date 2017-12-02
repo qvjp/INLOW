@@ -18,7 +18,7 @@ Vnode::Vnode(mode_t mode, dev_t dev, ino_t ino)
 	}
 }
 
-Vnode* resolvePath(Vnode* vnode, const char* path)
+Reference<Vnode> resolvePath(const Reference<Vnode>& vnode, const char* path)
 {
 	if (!*path)
 	{
@@ -26,7 +26,7 @@ Vnode* resolvePath(Vnode* vnode, const char* path)
 		return nullptr;
 	}
 
-	Vnode* currentVnode = vnode;
+	Reference<Vnode> currentVnode = vnode;
 	char* pathCopy = strdup(path);
 	if (!pathCopy)
 	{
@@ -74,7 +74,7 @@ int Vnode::ftruncate(off_t)
 	return -1;
 }
 
-Vnode* Vnode::getChildNode(const char*)
+Reference<Vnode> Vnode::getChildNode(const char*)
 {
 	errno = EBADF;
 	return nullptr;
