@@ -86,6 +86,7 @@ char* canonicalize_file_name(const char* path)
 		{
             closedir(dir);
             free(name);
+			errno = ENOENT;
             return NULL;
         }
 

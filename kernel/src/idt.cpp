@@ -126,7 +126,7 @@ extern "C"
 				IDT_ENTRY(isr_47, 0x8, IDT_INTERRUPT_GATE | IDT_RING0 | IDT_PRESENT),
 
 				IDT_ENTRY(syscallHandler, 0x8, IDT_TRAP_GATE | IDT_RING3 | IDT_PRESENT),
-				IDT_ENTRY(isr_49, 0x8, IDT_INTERRUPT_GATE | IDT_RING0 | IDT_PRESENT),
+				IDT_ENTRY(isr_49, 0x8, IDT_INTERRUPT_GATE | IDT_RING3 | IDT_PRESENT),
 		};
 
 		uint16_t idt_size = sizeof(idt) - 1;

@@ -29,6 +29,7 @@ static const void* syscallList[NUM_SYSCALLS] = {
 	(void*) Syscall::confstr,
 	(void*) Syscall::fstat,
 	(void*) Syscall::mkdirat,
+	(void*) Syscall::unlinkat,
 };
 
 static FileDescription* getRootFd(int fd, const char* path)
@@ -240,6 +241,59 @@ int Syscall::tcsetattr(int fd, int flags, const struct termios* termio)
 {
 	FileDescription* descr = Process::current->fd[fd];
 	return descr->tcsetattr(flags, termio);
+}
+
+int Syscall::unlinkat(int fd, const char* path, int flags)
+{
+	if (!(flags & (AT_REMOVEDIR | AT_REMOVEFILE)))
+	{
+		flags |= AT_REMOVEFILE;
+	}
+
+	if (path[strlen(path) - 1] == '/')
+	{
+		flags &= ~AT_REMOVEFILE;
+	}
+
+	char* pathCopy = strdup(path);
+	if (!pathCopy)
+		return -1;
+	char* slash = strrchr(pathCopy, '/');
+	while (slash && !slash[1])
+	{
+		*slash = '\0';
+		slash = strrchr(pathCopy, '/');
+	}
+
+	char* name;
+	Reference<Vnode> vnode = getRootFd(fd, path)->vnode;
+	if (slash)
+	{
+		*slash = '\0';
+		name = slash + 1;
+		if (*pathCopy)
+		{
+			vnode = resolvePath(vnode, pathCopy);
+			if (!vnode)
+			{
+				free(pathCopy);
+				return -1;
+			}
+		}
+	}
+	else
+	{
+		name = pathCopy;
+	}
+
+	if (unlikely(!*name && vnode == Process::current->rootFd->vnode))
+	{
+		errno = EBUSY;
+		return -1;
+	}
+	int result = vnode->unlink(name, flags);
+	free(pathCopy);
+	return result;
 }
 
 pid_t Syscall::waitpid(pid_t pid, int* status, int flags)

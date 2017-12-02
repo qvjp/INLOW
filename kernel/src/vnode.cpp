@@ -91,6 +91,11 @@ int Vnode::mkdir(const char*, mode_t)
 	return -1;
 }
 
+bool Vnode::onUnlink()
+{
+	return true;
+}
+
 ssize_t Vnode::pread(void*, size_t, off_t)
 {
 	errno = EBADF;
@@ -115,6 +120,14 @@ ssize_t Vnode::readdir(unsigned long, void*, size_t)
 	return -1;
 }
 
+int Vnode::stat(struct stat* result)
+{
+	result->st_dev = dev;
+	result->st_ino = ino;
+	result->st_mode = mode;
+	return 0;
+}
+
 int Vnode::tcgetattr(struct termios*)
 {
 	errno = ENOTTY;
@@ -127,12 +140,10 @@ int Vnode::tcsetattr(int, const struct termios*)
 	return -1;
 }
 
-int Vnode::stat(struct stat* result)
+int Vnode::unlink(const char*, int)
 {
-	result->st_dev = dev;
-	result->st_ino = ino;
-	result->st_mode = mode;
-	return 0;
+	errno = ENOTDIR;
+	return -1;
 }
 
 ssize_t Vnode::write(const void*, size_t)
