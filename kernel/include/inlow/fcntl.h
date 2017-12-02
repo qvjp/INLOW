@@ -3,6 +3,9 @@
 
 #define AT_FDCWD (-1)
 
+#define AT_REMOVEDIR (1 << 0)
+#define AT_REMOVEFILE (1 << 1)
+
 #define O_EXEC (1 << 0)
 #define O_RDONLY (1 << 1)
 #define O_WRONLY (1 << 2)

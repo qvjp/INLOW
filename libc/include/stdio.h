@@ -47,6 +47,7 @@ extern "C"
 		int putc(int, FILE*);
 		int putchar(int);
 		int puts(const char*);
+		int remove(const char*);
 		int vfprintf(FILE* __restrict, const char* __restrict, __gnuc_va_list) __printf_like(2, 0);
 
 #if __USE_INLOW || __USE_POSIX

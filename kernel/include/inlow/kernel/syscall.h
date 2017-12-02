@@ -28,6 +28,7 @@ namespace Syscall
 	pid_t regfork(int flags, struct regfork* registers);
 	int tcgetattr(int fd, struct termios* result);
 	int tcsetattr(int fd, int flags, const struct termios* termio);
+	int unlinkat(int fd, const char* path, int flags);
 	pid_t waitpid(pid_t pid, int* status, int flags);
 	ssize_t write(int fd, const void* buffer, size_t size);
 	

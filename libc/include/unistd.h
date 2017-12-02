@@ -47,7 +47,10 @@ extern "C"
 		char* getlogin(void);
 		int getopt(int, char* const[], const char*);
 		ssize_t read(int, void*, size_t);
+		int rmdir(const char*);
 		unsigned int sleep(unsigned int);
+		int unlink(const char*);
+		int unlinkat(int, const char*, int);
 		ssize_t write(int, const void*, size_t);
 
 #if __USE_INLOW
