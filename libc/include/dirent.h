@@ -21,6 +21,7 @@ extern "C"
 		DIR* fdopendir(int);
 		DIR* opendir(const char*);
 		struct dirent* readdir(DIR*);
+		void rewinddir(DIR*);
 #ifdef __cplusplus
 }
 #endif

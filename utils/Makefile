@@ -18,6 +18,7 @@ PROGRAMS = \
 		   ls \
 		   mkdir \
 		   pwd \
+		   rm \
 		   sh \
 		   sleep \
 		   snake \
