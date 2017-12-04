@@ -13,6 +13,7 @@ CPPFLAGS += -D_INLOW_SOURCE -DINLOW_VERSION=\"$(VERSION)\"
 PROGRAMS = \
 		   cat \
 		   clear \
+		   cp \
 		   echo \
 		   false \
 		   ls \
