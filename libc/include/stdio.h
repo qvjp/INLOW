@@ -48,6 +48,7 @@ extern "C"
 		int putchar(int);
 		int puts(const char*);
 		int remove(const char*);
+		int rename(const char*, const char*);
 		int vfprintf(FILE* __restrict, const char* __restrict, __gnuc_va_list) __printf_like(2, 0);
 
 #if __USE_INLOW || __USE_POSIX
@@ -60,6 +61,7 @@ extern "C"
 		ssize_t getline(char** __restrict, size_t* __restrict, FILE* __restrict);
 		int putc_unlocked(int, FILE*);
 		int putchar_unlocked(int);
+		int renameat(int, const char*, int, const char*);
 #endif
 #if __USE_INLOW
 		void clearerr_unlocked(FILE*);

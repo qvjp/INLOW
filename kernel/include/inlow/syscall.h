@@ -21,7 +21,8 @@
 #define SYSCALL_FSTAT 17
 #define SYSCALL_MKDIRAT 18
 #define SYSCALL_UNLINKAT 19
+#define SYSCALL_RENAMEAT 20
 
-#define NUM_SYSCALLS 20
+#define NUM_SYSCALLS 21
 
 #endif
