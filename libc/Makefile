@@ -112,6 +112,8 @@ LIBC_OBJ = \
 		stdio/putchar \
 		stdio/puts \
 		stdio/remove \
+		stdio/rename \
+		stdio/renameat \
 		stdio/stderr \
 		stdio/stdin \
 		stdio/stdout \

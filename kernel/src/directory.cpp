@@ -139,36 +139,116 @@ ssize_t DirectoryVnode::readdir(unsigned long offset, void* buffer, size_t size)
 	return structSize;
 }
 
-int DirectoryVnode::unlink(const char* name, int flags)
+int DirectoryVnode::rename(Reference<Vnode>& oldDirectory, const char* oldName, const char* newName)
 {
-	if (strcmp(name, ".") == 0 || strcmp(name, "..") == 0)
-	{
-		errno = EINVAL;
-		return -1;
-	}
 	AutoLock lock(&mutex);
+	Reference<Vnode> vnode;
+	if (oldDirectory == this)
+	{
+		vnode = getChildNodeUnlocked(oldName);
+	}
+	else
+	{
+		vnode = oldDirectory->getChildNode(oldName);
+	}
+	if (!vnode)
+		return -1;
+
+	Reference<Vnode> vnode2 = getChildNodeUnlocked(newName);
+	if (vnode == vnode2)
+		return 0;
 
 	for (size_t i = 0; i < childCount; i++)
 	{
-		if (strcmp(name, fileNames[i]) == 0)
+		if (strcmp(newName, fileNames[i]) == 0)
 		{
-			Reference<Vnode> vnode = childNodes[i];
-			if (S_ISDIR(vnode->mode) && !(flags & AT_REMOVEDIR))
+			if (!S_ISDIR(vnode->mode) && S_ISDIR(childNodes[i]->mode))
 			{
-				errno = EPERM;
+				errno = EISDIR;
 				return -1;
 			}
-			if (!S_ISDIR(vnode->mode) && !(flags & AT_REMOVEFILE))
+			if (S_ISDIR(vnode->mode) && !S_ISDIR(childNodes[i]->mode))
 			{
 				errno = ENOTDIR;
 				return -1;
 			}
 
-			if (!vnode->onUnlink())
+			if (!childNodes[i]->onUnlink())
 			{
 				return -1;
 			}
 
+			childNodes[i] = vnode;
+			if (oldDirectory == this)
+			{
+				unlinkUnlocked(oldName, 0);
+			}
+			else
+			{
+				oldDirectory->unlink(oldName, 0);
+				if (S_ISDIR(vnode->mode))
+				{
+					((Reference<DirectoryVnode>) vnode)->parent = this;
+				}
+			}
+			return 0;
+		}
+	}
+
+	if (oldDirectory == this)
+	{
+		for (size_t i = 0; i < childCount; i++)
+		{
+			if (strcmp(oldName, fileNames[i]) == 0)
+			{
+				char* name = strdup(newName);
+				if (!name)
+					return -1;
+				free(fileNames[i]);
+				fileNames[i] = name;
+				return 0;
+			}
+		}
+	}
+	if (!addChildNodeUnlocked(newName, vnode))
+		return -1;
+	oldDirectory->unlink(oldName, 0);
+	if (S_ISDIR(vnode->mode))
+	{
+		((Reference<DirectoryVnode>) vnode)->parent = this;
+	}
+	return 0;
+}
+
+int DirectoryVnode::unlink(const char* name, int flags)
+{
+	AutoLock lock(&mutex);
+	return unlinkUnlocked(name, flags);
+}
+
+int DirectoryVnode::unlinkUnlocked(const char* name, int flags)
+{
+	for (size_t i = 0; i < childCount; i++)
+	{
+		if (strcmp(name, fileNames[i]) == 0)
+		{
+			Reference<Vnode> vnode = childNodes[i];
+
+			if (flags)
+			{
+				if (S_ISDIR(vnode->mode) && !(flags & AT_REMOVEDIR))
+				{
+					errno = EPERM;
+					return -1;
+				}
+				if (!S_ISDIR(vnode->mode) && !(flags & AT_REMOVEFILE))
+				{
+					errno = ENOTDIR;
+					return -1;
+				}
+				if (!vnode->onUnlink())
+					return -1;
+			}
 			free(fileNames[i]);
 			if (i != childCount - 1)
 			{
