@@ -169,7 +169,7 @@ static void copy(int sourceFd, const char* sourceName, const char* sourcePath,
         }
         destExists = false;
     }
-    if (sourceSt.st_dev == destSt.st_dev && sourceSt.st_ino == destSt.st_ino)
+	if (destExists && sourceSt.st_dev == destSt.st_dev && sourceSt.st_ino == destSt.st_ino)
 	{
         warnx("'%s' and '%s' are the same file", sourcePath, destPath);
         status = 1;
