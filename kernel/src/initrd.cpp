@@ -71,7 +71,7 @@ Reference<DirectoryVnode> Initrd::loadInitrd(vaddr_t initrd)
 						Print::printf("Unknow typeflag '%c'\n", header->typeflag);
 						return root;
 				}
-				directory->addChildNode(fileName, newFile);
+				directory->link(fileName, newFile);
 				// Print::printf("File: %s/%s, size = %zu\n", dirName, fileName, size);
 
 				free(path);
