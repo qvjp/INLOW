@@ -3,6 +3,8 @@
 
 #define AT_FDCWD (-1)
 
+#define AT_SYMLINK_NOFOLLOW (1 << 0)
+
 #define AT_SYMLINK_FOLLOW (1 << 0)
 
 #define AT_REMOVEDIR (1 << 0)

@@ -158,6 +158,8 @@ LIBC_OBJ = \
 		unistd/regfork \
 		unistd/rmdir \
 		unistd/sleep \
+		unistd/symlink \
+		unistd/symlinkat \
 		unistd/unlink \
 		unistd/unlinkat \
 		unistd/write
