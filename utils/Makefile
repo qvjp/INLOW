@@ -16,6 +16,7 @@ PROGRAMS = \
 		   cp \
 		   echo \
 		   false \
+		   ln \
 		   ls \
 		   mkdir \
 		   mv \
