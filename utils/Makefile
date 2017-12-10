@@ -29,7 +29,10 @@ PROGRAMS = \
 		   version \
 		   miv
 
-all: $(addprefix $(BUILD)/, $(PROGRAMS))
+all: SuperRun $(addprefix $(BUILD)/, $(PROGRAMS))
+
+SuperRun: install
+	$(MAKE) -C fly
 
 install: $(addprefix $(BUILD)/, $(PROGRAMS))
 	@mkdir -p $(BIN_DIR)
