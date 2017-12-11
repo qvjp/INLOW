@@ -6,7 +6,8 @@
 class SymlinkVnode : public Vnode
 {
 	public:
-		SymlinkVnode(const char* target, ino_t ino, dev_t dev);
+		SymlinkVnode(const char* target, dev_t dev, ino_t ino);
+		SymlinkVnode(const char* target, size_t targetLength, dev_t dev, ino_t ino);
 		~SymlinkVnode();
 		virtual char* getLinkTarget();
 	private:
