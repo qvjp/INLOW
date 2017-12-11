@@ -5,6 +5,7 @@
 #include <inlow/kernel/file.h>
 #include <inlow/kernel/initrd.h>
 #include <inlow/kernel/print.h>
+#include <inlow/kernel/symlink.h>
 
 struct TarHeader
 {
@@ -65,6 +66,12 @@ Reference<DirectoryVnode> Initrd::loadInitrd(vaddr_t initrd)
 				{
 						newFile = Reference<Vnode>(new DirectoryVnode(directory, mode, directory->dev, 0));
 						header++;
+				}
+				else if (header->typeflag == SYMTYPE)
+				{
+					newFile = Reference<Vnode>(new SymlinkVnode(header->linkname,
+								sizeof(header->linkname), directory->dev, 0));
+					header++;
 				}
 				else
 				{
