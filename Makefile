@@ -48,7 +48,7 @@ run: $(ISO)
 utils: $(INCLUDE_DIR)
 	$(MAKE) -C utils
 
-$(SYSROOT): $(INCLUDE_DIR) $(LIB_DIR) $(BIN_DIR)
+$(SYSROOT): $(INCLUDE_DIR) $(LIB_DIR) $(BIN_DIR) $(SYSROOT)/usr
 
 $(BIN_DIR):
 	$(MAKE) -C utils install
@@ -59,6 +59,9 @@ $(INCLUDE_DIR):
 
 $(LIB_DIR):
 	$(MAKE) -C libc install-libs
+
+$(SYSROOT)/usr:
+	ln -s . $@
 
 clean:
 	rm -rf ./build/
