@@ -1,1 +1,1 @@
-VERSION = "0.0.2 snow"
+VERSION = "0.0.3 light dev"
