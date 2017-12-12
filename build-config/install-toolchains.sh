@@ -2,8 +2,8 @@
 
 set -e
 
-binutils_repo=https://github.com/qvjp/binutils-inlow-2.29.1.git
-gcc_repo=https://github.com/qvjp/gcc-inlow-7.2.0.git
+binutils_repo=https://github.com/qvjp/binutils-inlow-2.26.git
+gcc_repo=https://github.com/qvjp/gcc-inlow-6.1.0.git
 
 [ -z "${PREFIX+x}" ] && PREFIX="$HOME/inlow-toolchain"
 [ -z "$SRCDIR" ] && SRCDIR="$HOME/src"
@@ -43,7 +43,7 @@ mkdir -p "$BUILDDIR/build-binutils"
 cd "$BUILDDIR/build-binutils"
 "$SRCDIR/inlow-binutils/configure" --target=$TARGET --prefix="$PREFIX" \
 		--with-sysroot="$SYSROOT" --disable-werror --disable-nls
-make
+make -j5
 make install
 
 echo Building gcc...
@@ -51,7 +51,7 @@ mkdir -p "$BUILDDIR/build-gcc"
 cd "$BUILDDIR/build-gcc"
 "$SRCDIR/inlow-gcc/configure" --target=$TARGET --prefix="$PREFIX" \
 		--with-sysroot="$SYSROOT" --enable-languages=c,c++ --disable-nls
-make all-gcc all-target-libgcc
+make -j5 all-gcc all-target-libgcc
 make install-gcc install-target-libgcc
 
 if [ "$CONTINUOUS_INTEGRATION" = true ]
