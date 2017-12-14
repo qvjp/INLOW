@@ -1,1 +1,1 @@
-VERSION = "0.0.3 light"
+VERSION = "0.0.4 graphical dev"
