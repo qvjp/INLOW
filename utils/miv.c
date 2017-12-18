@@ -8,12 +8,6 @@
 #include <termios.h>
 #include <unistd.h>
 
-static enum
-{
-	START,
-	INSERT,
-	COMMAND 
-} mode = START;
 
 static enum {
     NORMAL,
