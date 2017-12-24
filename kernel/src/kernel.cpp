@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <string.h>
 #include <inlow/kernel/addressspace.h>
 #include <inlow/kernel/directory.h>
@@ -50,6 +51,7 @@ extern "C" void kernel_main(uint32_t, paddr_t multibootAddress)
 				const char* envp[] = { "PATH=/bin", nullptr };
 				newProcess->execute(program, (char**) argv, (char**) envp);
 				Process::addProcess(newProcess);
+				assert(newProcess->pid == 1);
 		}
 
 

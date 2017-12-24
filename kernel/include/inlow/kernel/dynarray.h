@@ -53,7 +53,7 @@ class DynamicArray
 			{
 				if (buffer[i])
 				{
-					return -1;
+					return i;
 				}
 			}
 			return (TSize) -1;
