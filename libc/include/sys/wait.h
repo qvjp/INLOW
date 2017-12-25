@@ -13,7 +13,8 @@
 extern "C"
 {
 #endif
-		pid_t waitpid(pid_t, int* ,int);
+	pid_t wait(int*);
+	pid_t waitpid(pid_t, int* ,int);
 #ifdef __cplusplus
 }
 #endif

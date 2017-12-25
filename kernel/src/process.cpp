@@ -347,25 +347,50 @@ Process* Process::waitpid(pid_t pid, int flags)
 		errno = EINVAL;
 		return nullptr;
 	}
-	kthread_mutex_lock(&childrenMutex);
-	Process* process = firstChild;
 
-	while (process && process->pid != pid)
+	Process* process;
+	if (pid == -1)
 	{
-		process = process->nextChild;
+		while (true)
+		{
+			kthread_mutex_lock(&childrenMutex);
+			if (!firstChild)
+			{
+				kthread_mutex_unlock(&childrenMutex);
+				errno = ECHILD;
+				return nullptr;
+			}
+			process = firstChild;
+			while (process && !process->terminated)
+			{
+				process = process->nextChild;
+			}
+			kthread_mutex_unlock(&childrenMutex);
+			if (process)
+				break;
+			sched_yield();
+		}
 	}
-	kthread_mutex_unlock(&childrenMutex);
+	else
+	{
+		kthread_mutex_lock(&childrenMutex);
+		process = firstChild;
 
-	if (!process)
-	{
-		errno = ECHILD;
-		return nullptr;
+		while (process && process->pid != pid)
+		{
+			process = process->nextChild;
+		}
+		kthread_mutex_unlock(&childrenMutex);
+		if (!process)
+		{
+			errno = ECHILD;
+			return nullptr;
+		}
+		while (!process->terminated)
+		{
+			sched_yield();
+		}
 	}
-	while (!process->terminated)
-	{
-		sched_yield();
-	}
-
 	assert(!process->firstChild);
 
 	kthread_mutex_lock(&childrenMutex);
@@ -384,7 +409,7 @@ Process* Process::waitpid(pid_t pid, int flags)
 	kthread_mutex_unlock(&childrenMutex);
 
 	Interrupts::disable();
-	processes.remove(pid);
+	processes.remove(process->pid);
 	Interrupts::enable();
 
 	return process;
