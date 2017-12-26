@@ -43,15 +43,16 @@ extern "C" void kernel_main(uint32_t, paddr_t multibootAddress)
 		
 		Print::printf("Initializing process...\n");
 		Process::initialize(rootFd);
-		Reference<Vnode> program = resolvePath(rootDir, "/bin/sh");
+		Reference<Vnode> program = resolvePath(rootDir, "/sbin/init");
 		if (program)
 		{
 				Process* newProcess = new Process();
-				const char* argv[] = { "/bin/sh", nullptr };
-				const char* envp[] = { "PATH=/bin", nullptr };
+				const char* argv[] = { "init", nullptr };
+				const char* envp[] = { nullptr };
 				newProcess->execute(program, (char**) argv, (char**) envp);
 				Process::addProcess(newProcess);
 				assert(newProcess->pid == 1);
+				Process::initProcess = newProcess;
 		}
 
 

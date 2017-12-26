@@ -34,6 +34,7 @@ static const void* syscallList[NUM_SYSCALLS] = {
 	(void*) Syscall::renameat,
 	(void*) Syscall::linkat,
 	(void*) Syscall::symlinkat,
+	(void*) Syscall::getpid,
 };
 
 static FileDescription* getRootFd(int fd, const char* path)
@@ -132,6 +133,11 @@ int Syscall::fstatat(int fd, const char* restrict path, struct stat* restrict re
 	if (!vnode)
 			return -1;
 	return vnode->stat(result);
+}
+
+pid_t Syscall::getpid()
+{
+	return Process::current->pid;
 }
 
 int Syscall::linkat(int oldFd, const char* oldPath, int newFd, const char* newPath, int flags)

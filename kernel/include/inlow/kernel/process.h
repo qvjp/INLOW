@@ -46,6 +46,7 @@ class Process
 			static void initialize(FileDescription* rootFd);
 			static InterruptContext* schedule(InterruptContext* context);
 			static Process* current;
+			static Process* initProcess;
 	private:
 			int copyArguments(char* const argv[], char* const envp[], char**& newArgv, char**& newEnvp, AddressSpace* newAddressSpace);
 			static uintptr_t loadELF(uintptr_t elf, AddressSpace* newAddressSpace);

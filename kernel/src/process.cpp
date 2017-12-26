@@ -12,6 +12,7 @@
 #include <inlow/kernel/terminal.h>
 
 Process* Process::current;
+Process* Process::initProcess;
 
 static DynamicArray<Process*, pid_t> processes;
 
@@ -249,6 +250,30 @@ int Process::execute(const Reference<Vnode>& vnode, char* const argv[], char* co
 
 void Process::exit(int status)
 {
+	kthread_mutex_lock(&childrenMutex);
+	if (firstChild)
+	{
+		AutoLock lock(&initProcess->childrenMutex);
+
+		Process* child = firstChild;
+		while (true)
+		{
+			child->parent = initProcess;
+			if (!child->nextChild)
+			{
+				child->nextChild = initProcess->firstChild;
+				if (initProcess->firstChild)
+				{
+					initProcess->firstChild->prevChild = child;
+				}
+				initProcess->firstChild = firstChild;
+				break;
+			}
+			child = child->nextChild;
+		}
+	}
+	kthread_mutex_unlock(&childrenMutex);
+
 	Interrupts::disable();
 	// Clean UP
 	delete addressSpace;
@@ -391,7 +416,6 @@ Process* Process::waitpid(pid_t pid, int flags)
 			sched_yield();
 		}
 	}
-	assert(!process->firstChild);
 
 	kthread_mutex_lock(&childrenMutex);
 	if (process->nextChild)

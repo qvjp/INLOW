@@ -21,3 +21,4 @@ INCLUDE_DIR = $(SYSROOT)/include
 LIB_DIR = $(SYSROOT)/lib
 BIN_DIR = $(SYSROOT)/bin
 INITRD = $(BUILD_DIR)/initrd.tar
+SBIN_DIR = $(SYSROOT)/sbin
