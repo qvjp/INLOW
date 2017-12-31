@@ -21,7 +21,7 @@ static multiboot_info multiboot;
 extern "C" void kernel_main(uint32_t, paddr_t multibootAddress)
 {
 		Print::printf("Welcome to INLOW " INLOW_VERSION "\n");
-		Print::printf("Initializing Address space...\n");
+		// Print::printf("Initializing Address space...\n");
 		AddressSpace::initialize();
 
 		multiboot_info* multibootMapped = (multiboot_info*) kernelSpace->mapPhysical(
@@ -30,18 +30,18 @@ extern "C" void kernel_main(uint32_t, paddr_t multibootAddress)
 		memcpy(&multiboot, multibootMapped, sizeof(multiboot_info));
 		kernelSpace->unmapPhysical((vaddr_t) multibootMapped, 0x1000);
 
-		Print::printf("Initializing Physical Memory..\n");
+		// Print::printf("Initializing Physical Memory..\n");
 		PhysicalMemory::initialize(&multiboot);
 
-		Print::printf("Initializing PS/2 Controller...\n");
+		// Print::printf("Initializing PS/2 Controller...\n");
 		PS2::initialize();
 
 		// Load the initrd
-		Print::printf("Loading Initrd...\n");
+		// Print::printf("Loading Initrd...\n");
 		Reference<DirectoryVnode> rootDir = loadInitrd(&multiboot);
 		FileDescription* rootFd = new FileDescription(rootDir);
 		
-		Print::printf("Initializing process...\n");
+		// Print::printf("Initializing process...\n");
 		Process::initialize(rootFd);
 		Reference<Vnode> program = resolvePath(rootDir, "/sbin/init");
 		if (program)
@@ -56,10 +56,10 @@ extern "C" void kernel_main(uint32_t, paddr_t multibootAddress)
 		}
 
 
-		Print::printf("Enabling interrupts...\n");
+		// Print::printf("Enabling interrupts...\n");
 		Interrupts::initPic();
 		Pit::initialize();
-		Print::printf("Initialization completed.\n");
+		// Print::printf("Initialization completed.\n");
 		Interrupts::enable();
 
 		while (true)

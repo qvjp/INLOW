@@ -90,7 +90,7 @@ void PhysicalMemory::initialize(multiboot_info* multiboot)
 
 	kernelSpace->unmapPhysical(mmapMapped, mmapSize);
 	kernelSpace->unmapPhysical(modulesMapped, modulesSize);
-	Print::printf("Free Memory: %zu KiB\n", stackUsed * 4);
+	// Print::printf("Free Memory: %zu KiB\n", stackUsed * 4);
 }
 
 
