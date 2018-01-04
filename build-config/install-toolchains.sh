@@ -20,7 +20,7 @@ then
 	latest_binutils=$(git ls-remote $binutils_repo HEAD | cut -c 1-40)
 	latest_gcc=$(git ls-remote $gcc_repo HEAD | cut -c 1-40)
 	[ "$current_binutils" = "$latest_binutils" ] && \
-			[ "$current_gcc" = "latest_gcc"] && \
+			[ "$current_gcc" = "$latest_gcc"] && \
 			echo Cached Toolchain is already up to date. && exit
 	rm -rf "$PREFIX"
 fi
@@ -30,7 +30,7 @@ SYSROOT="$(cd "$SYSROOT" && pwd)"
 export PATH="$PREFIX/bin:$PATH"
 
 rm -rf "$SRCDIR/inlow-binutils" "$SRCDIR/inlow-gcc"
-rm -rf "$BUILDDIR/build-binutils" "BUILDDIR/build-gcc"
+rm -rf "$BUILDDIR/build-binutils" "$BUILDDIR/build-gcc"
 
 echo Downloading sources...
 mkdir -p "$SRCDIR"
