@@ -3,6 +3,7 @@
 
 #include <sys/types.h>
 #include <inlow/fork.h>
+#include <inlow/siginfo.h>
 #include <inlow/kernel/addressspace.h>
 #include <inlow/kernel/filedescription.h>
 #include <inlow/kernel/interrupts.h>
@@ -10,16 +11,30 @@
 
 #define OPEN_MAX 20
 
+struct PendingSignal
+{
+	siginfo_t siginfo;
+	PendingSignal* next;
+};
+
 class Process
 {
 	public:
 			Process();
 			~Process();
 			void exit(int status);
-			Process* regfork(int flags, struct regfork* registers);
 			int execute(const Reference<Vnode>& vnode, char* const argv[], char* const envp[]);
+			Process* regfork(int flags, struct regfork* registers);
 			int registerFileDescriptor(FileDescription* descr);
 			Process* waitpid(pid_t pid, int flags);
+
+			InterruptContext* handleSignal(InterruptContext* context);
+			void raiseSignal(siginfo_t siginfo);
+			void terminateBySignal(siginfo_t siginfo);
+			void updatePendingSignals();
+
+	private:
+			void terminate();
 
 	private:
 			InterruptContext* interruptContext;
@@ -32,6 +47,8 @@ class Process
 			Process* prevChild;
 			Process* nextChild;
 			kthread_mutex_t childrenMutex;
+			PendingSignal* pendingSignals;
+			kthread_mutex_t signalMutex;
 
 	public:
 			AddressSpace* addressSpace;
@@ -39,8 +56,8 @@ class Process
 			FileDescription* rootFd;
 			FileDescription* cwdFd;
 			pid_t pid;
-			int status;
 			mode_t umask;
+			siginfo_t terminationStatus;
 	public:
 			static bool addProcess(Process* process);
 			static void initialize(FileDescription* rootFd);

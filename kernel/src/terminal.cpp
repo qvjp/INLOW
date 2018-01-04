@@ -1,5 +1,7 @@
+#include <errno.h>
 #include <sched.h>
 #include <inlow/kernel/kernel.h>
+#include <inlow/kernel/signal.h>
 #include <inlow/kernel/terminal.h>
 #include <inlow/kernel/vgaterminal.h>
 
@@ -149,6 +151,14 @@ ssize_t Terminal::read(void* buffer, size_t size)
 				}
 			}
 			sched_yield();
+
+			if (Signal::isPending())
+			{
+				if (readSize)
+					return readSize;
+				errno = EINTR;
+				return -1;
+			}
 		}
 		if (numEof)
 		{

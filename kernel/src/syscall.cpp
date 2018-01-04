@@ -1,9 +1,11 @@
 #include <errno.h>
 #include <sched.h>
+#include <signal.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <inlow/fcntl.h>
+#include <inlow/wait.h>
 #include <inlow/kernel/addressspace.h>
 #include <inlow/kernel/print.h>
 #include <inlow/kernel/process.h>
@@ -392,7 +394,9 @@ pid_t Syscall::waitpid(pid_t pid, int* status, int flags)
 
 	if (!process)
 			return -1;
-	*status = process->status;
+	int reason = (process->terminationStatus.si_code == CLD_EXITED)
+		? _WEXITED : _WSIGNALED;
+	*status = _WSTATUS(reason, process->terminationStatus.si_status);
 	pid_t result = process->pid;
 	delete process;
 	return result;
@@ -406,5 +410,8 @@ ssize_t Syscall::write(int fd, const void* buffer, size_t size)
 
 void Syscall::badSyscall()
 {
-	Print::printf("Syscall::badSyacall was called!\n");
+	siginfo_t siginfo = {};
+	siginfo.si_signo = SIGSYS;
+	siginfo.si_code = SI_KERNEL;
+	Process::current->raiseSignal(siginfo);
 }

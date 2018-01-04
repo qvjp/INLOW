@@ -11,8 +11,11 @@ class Timer
 			void advance(unsigned long nanosecodes);
 			void start();
 			void wait();
+
+	public:
+			struct timespec remaining;
+
 	private:
-			struct timespec time;
 			size_t index;
 };
 

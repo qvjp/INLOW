@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <errno.h>
 #include <sched.h>
+#include <signal.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -9,6 +10,7 @@
 #include <inlow/kernel/file.h>
 #include <inlow/kernel/physicalmemory.h>
 #include <inlow/kernel/process.h>
+#include <inlow/kernel/signal.h>
 #include <inlow/kernel/terminal.h>
 
 Process* Process::current;
@@ -32,9 +34,11 @@ Process::Process()
 	firstChild = nullptr;
 	prevChild = nullptr;
 	nextChild = nullptr;
-	status = 0;
 	childrenMutex = KTHREAD_MUTEX_INITIALIZER;
 	umask = S_IWGRP | S_IWOTH;
+	pendingSignals = nullptr;
+	signalMutex = KTHREAD_MUTEX_INITIALIZER;
+	terminationStatus = {};
 }
 
 Process::~Process()
@@ -177,6 +181,7 @@ InterruptContext* Process::schedule(InterruptContext* context)
 	setKernelStack((uintptr_t) current->kernelStack + 0x1000);
 
 	current->addressSpace->activate();
+	current->updatePendingSignals();
 	return current->interruptContext;
 }
 
@@ -250,41 +255,11 @@ int Process::execute(const Reference<Vnode>& vnode, char* const argv[], char* co
 
 void Process::exit(int status)
 {
-	kthread_mutex_lock(&childrenMutex);
-	if (firstChild)
-	{
-		AutoLock lock(&initProcess->childrenMutex);
-
-		Process* child = firstChild;
-		while (true)
-		{
-			child->parent = initProcess;
-			if (!child->nextChild)
-			{
-				child->nextChild = initProcess->firstChild;
-				if (initProcess->firstChild)
-				{
-					initProcess->firstChild->prevChild = child;
-				}
-				initProcess->firstChild = firstChild;
-				break;
-			}
-			child = child->nextChild;
-		}
-	}
-	kthread_mutex_unlock(&childrenMutex);
-
-	Interrupts::disable();
-	// Clean UP
-	delete addressSpace;
-	for (size_t i = 0; i < OPEN_MAX; i++)
-			if (fd[i])
-					delete fd[i];
-	delete rootFd;
-	delete cwdFd;
-	terminated = true;
-	this->status = status;
-	Interrupts::enable();
+	terminationStatus.si_signo = SIGCHLD;
+	terminationStatus.si_code = CLD_EXITED;
+	terminationStatus.si_pid = pid;
+	terminationStatus.si_status = status;
+	terminate();
 }
 
 Process* Process::regfork(int, struct regfork* registers)
@@ -338,7 +313,7 @@ Process* Process::regfork(int, struct regfork* registers)
 	Interrupts::disable();
 	if (!addProcess(process))
 	{
-		process->exit(0);
+		process->terminate();
 		if (process->nextChild)
 		{
 			process->nextChild->prevChild = nullptr;
@@ -363,6 +338,65 @@ int Process::registerFileDescriptor(FileDescription* descr)
 	}
 	errno = EMFILE;
 	return -1;
+}
+
+void Process::terminate()
+{
+	kthread_mutex_lock(&childrenMutex);
+	if (firstChild)
+	{
+		AutoLock lock(&initProcess->childrenMutex);
+
+		Process* child = firstChild;
+		while (true)
+		{
+			child->parent = initProcess;
+			if (!child->nextChild)
+			{
+				child->nextChild = initProcess->firstChild;
+				if (initProcess->firstChild)
+				{
+					initProcess->firstChild->prevChild = child;
+				}
+				initProcess->firstChild = firstChild;
+				break;
+			}
+			child = child->nextChild;
+		}
+	}
+	kthread_mutex_unlock(&childrenMutex);
+
+	if (likely(terminationStatus.si_signo == SIGCHLD))
+	{
+		parent->raiseSignal(terminationStatus);
+	}
+	Interrupts::disable();
+	if (this == Process::current)
+	{
+		kernelSpace->activate();
+	}
+	delete addressSpace;
+
+	for (size_t i = 0; i < OPEN_MAX; i++)
+	{
+		if (fd[i])
+			delete fd[i];
+	}
+	delete rootFd;
+	delete cwdFd;
+
+	terminated = true;
+	Interrupts::enable();
+}
+
+void Process::terminateBySignal(siginfo_t siginfo)
+{
+	terminationStatus.si_signo = SIGCHLD;
+	terminationStatus.si_code = CLD_KILLED;
+	terminationStatus.si_pid = pid;
+	terminationStatus.si_status = siginfo.si_signo;
+
+	terminate();
 }
 
 Process* Process::waitpid(pid_t pid, int flags)
@@ -394,6 +428,11 @@ Process* Process::waitpid(pid_t pid, int flags)
 			if (process)
 				break;
 			sched_yield();
+			if (Signal::isPending())
+			{
+				errno = EINTR;
+				return nullptr;
+			}
 		}
 	}
 	else
@@ -414,6 +453,11 @@ Process* Process::waitpid(pid_t pid, int flags)
 		while (!process->terminated)
 		{
 			sched_yield();
+			if (Signal::isPending())
+			{
+				errno = EINTR;
+				return nullptr;
+			}
 		}
 	}
 
