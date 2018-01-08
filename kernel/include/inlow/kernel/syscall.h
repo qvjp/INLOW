@@ -19,6 +19,7 @@ namespace Syscall
 	int fstat(int fd, struct stat* result);
 	int fstatat(int fd, const char* restrict path, struct stat* restrict result, int flags);
 	pid_t getpid();
+	int kill(pid_t pid, int signal);
 	int linkat(int oldFd, const char* oldPath, int newFd, const char* newPath, int flags);
 	int mkdirat(int fd, const char* path, mode_t mode);
 	void* mmap(__mmapRequest* request);
