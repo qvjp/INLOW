@@ -4,6 +4,7 @@
 #include <inlow/kernel/print.h>
 #include <inlow/kernel/port.h>
 #include <inlow/kernel/process.h>
+#include <inlow/kernel/signal.h>
 
 #define PIC1_COMMAND 0x20
 #define PIC1_DATA 0x21
@@ -165,6 +166,10 @@ handleKernelException:
 	else if (context->interrupt == 0x31)
 	{
 		newContext = Process::schedule(context);
+	}
+	else if (context->interrupt == 0x32)
+	{
+		newContext = Signal::sigreturn(context);
 	}
 	else
 	{

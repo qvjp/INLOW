@@ -1,5 +1,5 @@
-#ifndef _INLOW_SIGNALS_H
-#define _INLOW_SIGNALS_H
+#ifndef _INLOW_SIGNAL_H
+#define _INLOW_SIGNAL_H
 
 #define SIGHUP 1
 #define SIGINT 2
@@ -27,6 +27,10 @@
 #define SIGUSR2 23
 
 #define _NSIG 24
+
+#define SIG_DFL ((void (*)(int)) 0)
+#define SIG_IGN ((void (*)(int)) 1)
+#define SIG_ERR ((void (*)(int)) -1)
 
 
 #endif

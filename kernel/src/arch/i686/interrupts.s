@@ -115,3 +115,12 @@ isr 47
 
 # isr 48 # Syscall
 isr 49 # Schedule
+isr 50 # sigreturn
+
+
+.global beginSigreturn
+beginSigreturn:
+	int $0x32
+
+.global endSigreturn
+endSigreturn:

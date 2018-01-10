@@ -1,7 +1,6 @@
 #include <assert.h>
 #include <errno.h>
 #include <sched.h>
-#include <signal.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -17,6 +16,13 @@ Process* Process::current;
 Process* Process::initProcess;
 
 static DynamicArray<Process*, pid_t> processes;
+
+extern "C"
+{
+	extern symbol_t sigreturnPhysical;
+	extern symbol_t beginSigreturn;
+	extern symbol_t endSigreturn;
+}
 
 Process::Process()
 {
@@ -39,6 +45,9 @@ Process::Process()
 	pendingSignals = nullptr;
 	signalMutex = KTHREAD_MUTEX_INITIALIZER;
 	terminationStatus = {};
+	memset(sigactions, '\0', sizeof(sigactions));
+	signalMask = 0;
+	sigreturn = 0;
 }
 
 Process::~Process()
@@ -200,6 +209,13 @@ int Process::execute(const Reference<Vnode>& vnode, char* const argv[], char* co
 	if (!entry)
 			return -1;
 
+	size_t sigreturnSize = (uintptr_t) &endSigreturn - (uintptr_t) &beginSigreturn;
+	assert(sigreturnSize <= 0x1000);
+	sigreturn = newAddressSpace->mapMemory(0x1000, PROT_EXEC);
+	vaddr_t sigreturnMapped = kernelSpace->mapFromOtherAddressSpace(newAddressSpace, sigreturn, 0x100, PROT_WRITE);
+	memcpy((void*) sigreturnMapped, &beginSigreturn, sigreturnSize);
+	kernelSpace->unmapPhysical(sigreturnMapped, 0x1000);
+
 	vaddr_t stack = newAddressSpace->mapMemory(0x1000, PROT_READ | PROT_WRITE);
 	void* newKernelStack = (void*) kernelSpace->mapMemory(0x1000, PROT_READ | PROT_WRITE);
 
@@ -239,6 +255,9 @@ int Process::execute(const Reference<Vnode>& vnode, char* const argv[], char* co
 		addressSpace->activate();
 	}
 	delete oldAddressSpace;
+
+	memset(sigactions, '\0', sizeof(sigactions));
+	signalMask = 0;
 
 	Interrupts::disable();
 	if (this == current)

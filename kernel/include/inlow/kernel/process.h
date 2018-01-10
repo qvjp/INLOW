@@ -1,9 +1,9 @@
 #ifndef KERNEL_PROCESS_H
 #define KERNEL_PROCESS_H
 
+#include <signal.h>
 #include <sys/types.h>
 #include <inlow/fork.h>
-#include <inlow/siginfo.h>
 #include <inlow/kernel/addressspace.h>
 #include <inlow/kernel/filedescription.h>
 #include <inlow/kernel/interrupts.h>
@@ -49,6 +49,7 @@ class Process
 			kthread_mutex_t childrenMutex;
 			PendingSignal* pendingSignals;
 			kthread_mutex_t signalMutex;
+			vaddr_t sigreturn;
 
 	public:
 			AddressSpace* addressSpace;
@@ -58,6 +59,8 @@ class Process
 			pid_t pid;
 			mode_t umask;
 			siginfo_t terminationStatus;
+			struct sigaction sigactions[NSIG];
+			sigset_t signalMask;
 	public:
 			static bool addProcess(Process* process);
 			static void initialize(FileDescription* rootFd);

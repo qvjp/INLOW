@@ -2,7 +2,7 @@
 #define _SIGNAL_H
 
 #include <sys/cdefs.h>
-#include <inlow/signals.h>
+#include <inlow/signal.h>
 #if __USE_INLOW || __USE_POSIX
 #define __need_pid_t
 #define __need_pthread_t
@@ -10,10 +10,12 @@
 #define __need_size_t
 #define __need_uid_t
 #include <sys/libc-types.h>
+#include <inlow/sigaction.h>
 #include <inlow/siginfo.h>
 #include <inlow/signalcodes.h>
 #include <inlow/sigset.h>
 #include <inlow/timespec.h>
+#include <inlow/ucontext.h>
 
 #endif
 
@@ -25,8 +27,10 @@ extern "C"
 	typedef __SIG_ATOMIC_TYPE__ sig_atomic_t;
 
 	int raise(int);
+	void (*signal(int, void(*)(int)))(int);
 #if __USE_INLOW || __USE_POSIX
 	int kill(pid_t, int);
+	int sigaction(int, const struct sigaction* __restrict, struct sigaction* __restrict);
 	int sigaddset(sigset_t*, int);
 	int sigdelset(sigset_t*, int);
 	int sigemptyset(sigset_t*);
