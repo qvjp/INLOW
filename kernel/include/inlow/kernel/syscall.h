@@ -11,6 +11,7 @@ struct __mmapRequest;
 struct stat;
 namespace Syscall
 {
+	NORETURN void abort();
 	int close(int fd);
 	size_t confstr(int name, char* buffer, size_t size);
 	int execve(const char* path, char* const argv[], char* const envp[]);

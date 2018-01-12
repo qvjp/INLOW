@@ -14,6 +14,7 @@ extern "C" {
 #define EXIT_SUCCESS 0
 #define RAND_MAX 32767
 
+		__noreturn void abort(void);
 		int atexit(void (*) (void));
 		void* calloc(size_t, size_t);
 		__noreturn void _Exit(int);
@@ -37,8 +38,6 @@ extern "C" {
 		char* canonicalize_file_name(const char*);
 		void* reallocarray(void*, size_t, size_t);
 #endif
-
-		__noreturn void abort(void);
 
 		int atoi(const char*);
 

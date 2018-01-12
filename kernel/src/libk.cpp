@@ -1,11 +1,21 @@
 #include <assert.h>
+#include <stdlib.h>
 #include <inlow/kernel/addressspace.h>
 #include <inlow/kernel/kthread.h>
 #include <inlow/kernel/print.h>
 
 static kthread_mutex_t heapLock = KTHREAD_MUTEX_INITIALIZER;
 
-extern "C" void __assertionFailure(const char* assertion, const char* file, unsigned int line, const char* func)
+extern "C" NORETURN void abort(void)
+{
+	Print::printf("Kernel abort");
+	while (true)
+	{
+		asm volatile("cli; hlt");
+	}
+}
+
+extern "C" NORETURN void __assertionFailure(const char* assertion, const char* file, unsigned int line, const char* func)
 {
 	Print::printf("Assertion failed: '%s' at function %s (%s:%u)\n",assertion, func, file, line);
 	while (true)

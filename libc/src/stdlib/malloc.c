@@ -57,7 +57,7 @@ void* malloc(size_t size)
 					break;
 			default:
 					__unlockHeap();
-					return NULL;
+					abort();
 		}
 	}
 }

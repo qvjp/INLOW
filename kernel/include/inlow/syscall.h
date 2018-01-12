@@ -27,7 +27,8 @@
 #define SYSCALL_GETPID 23
 #define SYSCALL_KILL 24
 #define SYSCALL_SIGACTION 25
+#define SYSCALL_ABORT 26
 
-#define NUM_SYSCALLS 26
+#define NUM_SYSCALLS 27
 
 #endif

@@ -39,6 +39,7 @@ static const void* syscallList[NUM_SYSCALLS] = {
 	(void*) Syscall::getpid,
 	(void*) Syscall::kill,
 	(void*) Syscall::sigaction,
+	(void*) Syscall::abort,
 };
 
 static FileDescription* getRootFd(int fd, const char* path)
@@ -68,6 +69,16 @@ extern "C" const void* getSyscallHandler(unsigned interruptNumber)
 	{
 		return syscallList[interruptNumber];
 	}
+}
+
+NORETURN void Syscall::abort()
+{
+	siginfo_t siginfo = {};
+	siginfo.si_signo = SIGABRT;
+	Process::current->terminateBySignal(siginfo);
+
+	sched_yield();
+	__builtin_unreachable();
 }
 
 int Syscall::close(int fd)
