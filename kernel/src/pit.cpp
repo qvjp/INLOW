@@ -1,4 +1,4 @@
-#include <inlow/kernel/clock.H>
+#include <inlow/kernel/clock.h>
 #include <inlow/kernel/interrupts.h>
 #include <inlow/kernel/print.h>
 #include <inlow/kernel/pit.h>
