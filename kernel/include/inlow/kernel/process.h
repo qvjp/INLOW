@@ -5,6 +5,7 @@
 #include <sys/types.h>
 #include <inlow/fork.h>
 #include <inlow/kernel/addressspace.h>
+#include <inlow/kernel/clock.h>
 #include <inlow/kernel/filedescription.h>
 #include <inlow/kernel/interrupts.h>
 #include <inlow/kernel/kthread.h>
@@ -61,6 +62,7 @@ class Process
 			siginfo_t terminationStatus;
 			struct sigaction sigactions[NSIG];
 			sigset_t signalMask;
+			Clock cpuClock;
 	public:
 			static bool addProcess(Process* process);
 			static void initialize(FileDescription* rootFd);

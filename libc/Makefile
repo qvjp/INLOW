@@ -152,7 +152,9 @@ LIBC_OBJ = \
 		sys/wait/waitpid \
 		termios/tcgetattr \
 		termios/tcsetattr \
+		time/clock_gettime \
 		time/nanosleep \
+		time/time \
 		unistd/access \
 		unistd/chdir \
 		unistd/close \

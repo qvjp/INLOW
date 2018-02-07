@@ -1,5 +1,10 @@
 #include <inlow/types.h>
 
+#if defined(__need_clockid_t) && !defined(__clockid_t_defined)
+typedef __clockid_t clockid_t;
+#define __clockid_t_defined
+#endif
+
 #if defined(__need_dev_t) && !defined(__dev_t_defined)
 typedef __dev_t dev_t;
 # define __dev_t_defined
@@ -45,6 +50,7 @@ typedef __time_t time_t;
 # define __time_t_defined
 #endif
 
+#undef __need_clockid_t
 #undef __need_dev_t
 #undef __need_FILE
 #undef __need_ino_t

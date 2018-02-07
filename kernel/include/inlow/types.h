@@ -1,6 +1,7 @@
 #ifndef _INLOW_TYPES_H
 #define _INLOW_TYPES_H
 
+typedef unsigned int __clockid_t;
 typedef unsigned long __dev_t;
 typedef __UINTMAX_TYPE__ __ino_t;
 typedef int __mode_t;

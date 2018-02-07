@@ -1,3 +1,4 @@
+#include <inlow/kernel/clock.H>
 #include <inlow/kernel/interrupts.h>
 #include <inlow/kernel/print.h>
 #include <inlow/kernel/pit.h>
@@ -50,6 +51,7 @@ size_t Pit::registerTimer(Timer* timer)
 
 static void irqHandler(int)
 {
+	Clock::onTick(nanoseconds);
 	for (size_t i = 0; i < NUM_TIMERS; i++)
 	{
 		if (timers[i])

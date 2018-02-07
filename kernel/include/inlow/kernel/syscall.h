@@ -12,6 +12,7 @@ struct stat;
 namespace Syscall
 {
 	NORETURN void abort();
+	int clock_gettime(clockid_t clockid, struct timespec* result);
 	int close(int fd);
 	size_t confstr(int name, char* buffer, size_t size);
 	int execve(const char* path, char* const argv[], char* const envp[]);

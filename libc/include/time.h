@@ -15,13 +15,18 @@
 
 #include <sys/libc-types.h>
 #include <inlow/timespec.h>
+#if __USE_INLOW || __USE_POSIX
+#include <inlow/clock.h>
+#endif
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
+time_t time(time_t*);
 #if __USE_INLOW || __USE_POSIX
+		int clock_gettime(clockid_t, struct timespec*);
 		int nanosleep(const struct timespec*, struct timespec*);
 #endif
 

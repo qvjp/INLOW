@@ -23,6 +23,7 @@ START_OBJ = $(CRTI_0) $(CRTBEGIN_0)
 END_OBJ = $(CRTEND_0) $(CRTN_0) 
 
 OBJ = addressspace.o \
+		clock.o \
 		conf.o \
 		directory.o \
 		file.o \

@@ -7,6 +7,7 @@
 #include <inlow/fcntl.h>
 #include <inlow/wait.h>
 #include <inlow/kernel/addressspace.h>
+#include <inlow/kernel/clock.h>
 #include <inlow/kernel/print.h>
 #include <inlow/kernel/process.h>
 #include <inlow/kernel/symlink.h>
@@ -40,6 +41,7 @@ static const void* syscallList[NUM_SYSCALLS] = {
 	(void*) Syscall::kill,
 	(void*) Syscall::sigaction,
 	(void*) Syscall::abort,
+	(void*) Syscall::clock_gettime,
 };
 
 static FileDescription* getRootFd(int fd, const char* path)
@@ -79,6 +81,15 @@ NORETURN void Syscall::abort()
 
 	sched_yield();
 	__builtin_unreachable();
+}
+
+int Syscall::clock_gettime(clockid_t clockid, struct timespec* result)
+{
+	Clock* clock = Clock::get(clockid);
+	if (!clock)
+		return -1;
+
+	return clock->getTime(result);
 }
 
 int Syscall::close(int fd)
