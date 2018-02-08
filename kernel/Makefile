@@ -44,6 +44,7 @@ OBJ = addressspace.o \
 		ps2.o \
 		ps2keyboard.o \
 		refcount.o \
+		rtc.o \
 		signal.o \
 		symlink.o \
 		syscall.o \

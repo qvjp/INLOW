@@ -9,6 +9,7 @@
 #include <inlow/kernel/pit.h>
 #include <inlow/kernel/process.h>
 #include <inlow/kernel/ps2.h>
+#include <inlow/kernel/rtc.h>
 
 #ifndef INLOW_VERSION
 #define INLOW_VERSION ""
@@ -58,6 +59,7 @@ extern "C" void kernel_main(uint32_t, paddr_t multibootAddress)
 
 		// Print::printf("Enabling interrupts...\n");
 		Interrupts::initPic();
+		Rtc::initialize();
 		Pit::initialize();
 		// Print::printf("Initialization completed.\n");
 		Interrupts::enable();

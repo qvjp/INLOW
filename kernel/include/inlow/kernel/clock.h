@@ -7,6 +7,7 @@ class Clock
 {
 	public:
 		Clock();
+		int setTime(struct timespec* newValue);
 		void tick(unsigned long nanoseconds);
 		int getTime(struct timespec* result);
 	public:
