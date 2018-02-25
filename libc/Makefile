@@ -154,6 +154,7 @@ LIBC_OBJ = \
 		termios/tcgetattr \
 		termios/tcsetattr \
 		time/clock_gettime \
+		time/clock_nanosleep \
 		time/nanosleep \
 		time/time \
 		unistd/access \

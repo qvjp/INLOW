@@ -1,4 +1,7 @@
 #include <time.h>
-#include <sys/syscall.h>
 
-DEFINE_SYSCALL_GLOBAL(SYSCALL_NANOSLEEP, int, nanosleep, (const struct timespec*, struct timespec*));
+int nanosleep(const struct timespec* requested, struct timespec* remaining)
+{
+	int result = clock_nanosleep(CLOCK_REALTIME, 0, requested, remaining);
+	return result ? -1 : 0;
+}

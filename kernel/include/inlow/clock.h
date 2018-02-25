@@ -5,5 +5,7 @@
 #define CLOCK_REALTIME 1
 #define CLOCK_PROCESS_CPUTIME_ID 2
 
+#define TIMER_ABSTIME 1
+
 
 #endif
