@@ -14,6 +14,7 @@ BIN_PROGRAMS = \
 		   cat \
 		   clear \
 		   cp \
+		   date \
 		   echo \
 		   false \
 		   ln \
