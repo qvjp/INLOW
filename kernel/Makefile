@@ -3,10 +3,15 @@ include $(TO_ROOT)/build-config/config.mk
 
 BUILD = $(BUILD_DIR)/kernel
 
+CRTBEGIN_0 := $(shell $(GCC) $(CFLAGS) -print-file-name=crtbegin.o)
+CRTEND_0 := $(shell $(GCC) $(CFLAGS) -print-file-name=crtend.o)
+START_OBJ := $(BUILD)/arch/i686/crti.o $(CRTBEGIN_0)
+END_OBJ := $(CRTEND_0) $(BUILD)/arch/i686/crtn.o
+
 OBJ := kernel.o
 OBJ += arch/i686/loader.o
 
-OBJ := $(addprefix $(BUILD)/, $(OBJ))
+OBJ := $(START_OBJ) $(addprefix $(BUILD)/, $(OBJ)) $(END_OBJ)
 all: $(BUILD)/kernel
 
 $(BUILD)/kernel: $(OBJ)
