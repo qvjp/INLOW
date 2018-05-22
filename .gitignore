@@ -2,3 +2,4 @@ build/
 *.iso
 .DS_Store
 sysroot/
+.vscode/
