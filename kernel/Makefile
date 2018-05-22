@@ -9,6 +9,7 @@ START_OBJ := $(BUILD)/arch/i686/crti.o $(CRTBEGIN_0)
 END_OBJ := $(CRTEND_0) $(BUILD)/arch/i686/crtn.o
 
 OBJ := kernel.o \
+	gdt.o \
 	print.o
 OBJ += arch/i686/loader.o
 
