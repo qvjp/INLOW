@@ -1,5 +1,5 @@
-#ifndef KERNEL_PRINT_H__
-#define KERNEL_PRINT_H__
+#ifndef KERNEL_GDT_H__
+#define KERNEL_GDT_H__
 
 #include <stdint.h> /* uint16_t uint8_t */
 
@@ -89,4 +89,4 @@ struct gdt_ptr
 #define GDT_PROTECTED_MODE (1 << 6)        // 0100 0000 32位保护模式
 
 
-#endif /* KERNEL_PRINT_H__ */
+#endif /* KERNEL_GDT_H__ */

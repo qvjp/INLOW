@@ -25,6 +25,10 @@ $(ISO): $(BUILD_DIR)/kernel/kernel.elf
 qemu: $(ISO)
 	qemu-system-i386 -cdrom $^
 
+vbox:
+	(killall VirtualBox && sleep 1) || true
+	VirtualBox --startvm "INLOW" &
+
 clean:
 	rm -rf ./build/
 	rm -f $(ISO)

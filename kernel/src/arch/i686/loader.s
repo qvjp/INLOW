@@ -39,7 +39,11 @@
         // 这里用ljmp直接跳到下一条指令（1:）并同时设置了cs寄存器
         ljmp $0x8, $1f
 
+        // 加载IDT
     1:
+        mov $idt_descriptor, %ecx    // 加载IDT地址
+        lidt (%ecx)                  // 加载IDT
+        
         mov $stack_top, %esp
 
         call _init
