@@ -3,6 +3,9 @@
 */
 ENTRY(_start);
 
+/* 内核虚拟空间开始位置 */
+KERNEL_VIRTUAL = 0xC0000000;
+
 /*
  指定各段在最终镜像中的位置
 */
@@ -11,25 +14,37 @@ SECTIONS {
      从1M处开始放我们的各种段，因为1M以内是x86保留的，我们不能用
     */
     . = 1M;
+    bootstrapBegin = .;
 
-    /*
-     把所有段都设置为4K的倍数，将来增加‘页’的时候会有用
-    */
+    bootstrap_text : {
+        /* 最开始放multiboot，因为如果远了bootloader会找不到 */
+        *(.multiboot)
+        *(bootstrap_text)
+    }
+
+    bootstrap_bss ALIGN(4K) : {
+        *(bootstrap_bss)
+    }
+    bootstrapEnd = ALIGN(4K);
+    numBootstrapPages = (bootstrapEnd - bootstrapBegin) / 4K;
+
+    /* 内核放在0xC0100000处 */
+    . += KERNEL_VIRTUAL;
+    kernelVirtualBegin = ALIGN(4K);
+    kernelPhysicalBegin = kernelVirtualBegin - KERNEL_VIRTUAL;
 
     /*
      可执行代码段
-     最开始放multiboot，因为如果远了bootloader会找不到
     */
-    .text BLOCK(4K) : ALIGN(4K)
+    .text ALIGN(4K) : AT(ADDR(.text) - KERNEL_VIRTUAL)
     {
-        *(.multiboot)
         *(.text)
     }
 
     /*
      只读数据
     */
-    .rodata BLOCK(4K) : ALIGN(4K)
+    .rodata ALIGN(4K) : AT(ADDR(.rodata) - KERNEL_VIRTUAL)
     {
         *(.rodata)
     }
@@ -37,7 +52,7 @@ SECTIONS {
     /*
      可读可写数据（将被初始化）
     */
-    .data BLOCK(4K) : ALIGN(4K)
+    .data ALIGN(4K) : AT(ADDR(.data) - KERNEL_VIRTUAL)
     {
         *(.data)
     }
@@ -45,9 +60,13 @@ SECTIONS {
     /*
      可读可写数据（未初始化）和栈
     */
-    .bss BLOCK(4K) : ALIGN(4K)
+    .bss ALIGN(4K) : AT(ADDR(.bss) - KERNEL_VIRTUAL)
     {
         *(COMMON)
         *(.bss)
     }
+
+    kernelVirtualEnd = ALIGN(4K);
+    kernelPhysicalEnd = kernelVirtualEnd - KERNEL_VIRTUAL;
+    numKernelPages = (kernelVirtualEnd - kernelVirtualBegin) / 4K;
 }
