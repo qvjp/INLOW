@@ -2,8 +2,8 @@
 #include <stddef.h>                /* size_t */
 #include <inlow/kernel/print.h>
 
-// 0xB8000是视频内存首地址
-static char* video = (char*) 0xB8000;
+// 在_start中视频内存首地址被映射到0xC0000000
+static char* video = (char*) 0xC0000000;
 static int cursorPostX = 0;
 static int cursorPostY = 0;
 
@@ -31,7 +31,7 @@ void printf(const char* format, ...)
     unsigned u;
     unsigned char c;
     const char* s;
-while (*format)
+    while (*format)
     {
         if(*format != '%')
         {

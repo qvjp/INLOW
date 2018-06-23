@@ -33,6 +33,9 @@
         movl $(bootstrapPageTable + 0x3), pageDirectory
         movl $(kernelPageTable + 0x3), pageDirectory + 0xC00
 
+        # 递归映射(recursively mapping)页目录到0xFFC00000
+        movl $(pageDirectory + 0x3), pageDirectory + 0xFFC
+
         # 恒等映射(identity mapping)bootstrap section
         mov $numBootstrapPages, %ecx
         mov $(bootstrapPageTable + 256 * 4), %edi
@@ -59,8 +62,8 @@
         # 循环直到最后一个入口
         loop 1b
 
-        # 映射视频内存
-        movl $0xB8003, bootstrapPageTable + 0x2E0
+        # 映射视频内存到0xC0000000
+        movl $0xB8003, kernelPageTable
 
         /* 开启分页 */
         mov $pageDirectory, %ecx

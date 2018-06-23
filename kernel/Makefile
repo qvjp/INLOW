@@ -8,7 +8,9 @@ CRTEND_0 := $(shell $(GCC) $(CFLAGS) -print-file-name=crtend.o)
 START_OBJ := $(BUILD)/arch/i686/crti.o $(CRTBEGIN_0)
 END_OBJ := $(CRTEND_0) $(BUILD)/arch/i686/crtn.o
 
-OBJ := gdt.o \
+OBJ := \
+	addressspace.o \
+	gdt.o \
 	idt.o \
 	irq.o \
 	isr.o \
