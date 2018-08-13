@@ -15,6 +15,7 @@ OBJ := \
 	irq.o \
 	isr.o \
 	kernel.o \
+	physicalmemory.o \
 	print.o
 OBJ += arch/i686/interrupt.o \
 	arch/i686/loader.o

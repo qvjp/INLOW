@@ -80,7 +80,8 @@ void irq_handler(struct regs *r)
 
     if (r->int_no <= 47 || r->int_no >= 32)
     {
-        printf("IRQ %d occurred!\n", r->int_no - 32);
+        if (r->int_no != 32)
+            printf("IRQ %d occurred!\n", r->int_no - 32);
         handler = irq_routines[r->int_no - 32];
         if (handler)
         {

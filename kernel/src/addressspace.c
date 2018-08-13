@@ -22,6 +22,7 @@ AddressSpace* new_AddressSpace(AddressSpace* this)
     this->mapAt = AddressSpace_mapAt;
     this->unmap = AddressSpace_unmap;
     this->initialize = AddressSpace_initialize;
+    this->getPhysicalAddress = AddressSpace_getPhysicalAddress;
     return this;
 }
 
@@ -176,5 +177,25 @@ void AddressSpace_initialize()
     {
         kernelSpace->unmap(p);
         p += 0x1000;
+    }
+    printf("AddressSpace_initialize: 0x%x\n", kernelSpace);
+}
+
+paddr_t AddressSpace_getPhysicalAddress(vaddr_t virtualAddress)
+{
+    size_t pdIndex = addressToPdIndex(virtualAddress);
+    size_t ptIndex = addressToPtIndex(virtualAddress);
+
+    uintptr_t* pageTable = (uintptr_t*) (RECURSIVE_MAPPING + 0x3FF000 + 4 * pdIndex);
+    if (*pageTable)
+    {
+        uintptr_t* pageEntry = (uintptr_t*)
+                (RECURSIVE_MAPPING + 0x1000 * pdIndex + 4 * ptIndex);
+            return *pageEntry & ~0xFFF;
+    }
+    else
+    {
+        printf("Error: Page Table does exist.\n");
+        return 0;
     }
 }

@@ -25,6 +25,8 @@
         .skip 4096
     kernelPageTable:
         .skip 4096
+    physicalMemoryPageTable:
+        .skip 4096
 
 /* 设置页，跳到高地址内核 */
 .section bootstrap_text, "ax"
@@ -32,6 +34,7 @@
         # 添加页表到页目录
         movl $(bootstrapPageTable + 0x3), pageDirectory
         movl $(kernelPageTable + 0x3), pageDirectory + 0xC00
+        movl $(physicalMemoryPageTable + 0x3), pageDirectory + 0xFF8
 
         # 递归映射(recursively mapping)页目录到0xFFC00000
         movl $(pageDirectory + 0x3), pageDirectory + 0xFFC
@@ -108,6 +111,13 @@
         lidt (%ecx)                  /* 加载IDT */
         
         mov $stack_top, %esp
+
+        push $0
+        push $0
+        mov %esp, %ebp
+
+        push %ebx /* multiboot */
+        push %eax /* magic */
 
         call _init
         call kernel_main
