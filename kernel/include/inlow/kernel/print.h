@@ -22,50 +22,18 @@
  */
 
 /**
- * bootloader在系统镜像中找下边指出的入口
+ * kernel/include/inlow/kernel/print.h
+ * 声明函数-格式化输出至屏幕
  */
-ENTRY(_start)
 
-/**
- * 指定各个段在最终镜像中的位置
- */
-SECTIONS {
-    /**
-     * 从1M处开始放我们的各种段，因为1M以内是x86保留的，我们不能用
-     */
-    . = 1M;
+#ifndef kERNEL_PRINT_H
+#define KERNEL_PRINT_H
 
-    /**
-     * 首先放置multiboot header，因为bootloader只会在最开始的8KiB内找我们设置好的魔法数字
-     * 接着放 .text section
-     */
-    .text BLOCK(4K) : ALIGN(4K)
-    {
-        *(.multiboot)
-        *(.text)
-    }
-
-    /* 只读数据 */
-    .rodata BLOCK(4K) : ALIGN(4K)
-    {
-        *(.rodata)
-    }
-
-    /* 可读可写数据（已被初始化）*/
-    .data BLOCK(4K) : ALIGN(4K)
-    {
-        *(.data)
-    }
-
-    /* 可读可写数据（未被初始化）和栈 */
-    .bss BLOCK(4K) : ALIGN(4K)
-    {
-        *(COMMON)
-        *(.bss)
-    }
-    /*
-     * 编译器可能会生成其他的section，默认情况下，会将它们
-     * 放在具有相同名称的段中。 只需根据需要添加内容即可。
-     */
-
+namespace Print
+{
+    /* 格式化输出 */
+    void printf(const char *format, ...);
+    /* 初始化终端 */
+    void initTerminal();
 }
+#endif

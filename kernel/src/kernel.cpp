@@ -22,50 +22,23 @@
  */
 
 /**
- * bootloader在系统镜像中找下边指出的入口
+ * kernel/src/kernel.cpp
+ * 内核main函数
  */
-ENTRY(_start)
 
-/**
- * 指定各个段在最终镜像中的位置
- */
-SECTIONS {
-    /**
-     * 从1M处开始放我们的各种段，因为1M以内是x86保留的，我们不能用
-     */
-    . = 1M;
+#include <stddef.h> /* size_t */
+#include <stdint.h> /* uint8_t */
+#include <inlow/kernel/print.h> /* printf() */
 
-    /**
-     * 首先放置multiboot header，因为bootloader只会在最开始的8KiB内找我们设置好的魔法数字
-     * 接着放 .text section
-     */
-    .text BLOCK(4K) : ALIGN(4K)
-    {
-        *(.multiboot)
-        *(.text)
-    }
-
-    /* 只读数据 */
-    .rodata BLOCK(4K) : ALIGN(4K)
-    {
-        *(.rodata)
-    }
-
-    /* 可读可写数据（已被初始化）*/
-    .data BLOCK(4K) : ALIGN(4K)
-    {
-        *(.data)
-    }
-
-    /* 可读可写数据（未被初始化）和栈 */
-    .bss BLOCK(4K) : ALIGN(4K)
-    {
-        *(COMMON)
-        *(.bss)
-    }
-    /*
-     * 编译器可能会生成其他的section，默认情况下，会将它们
-     * 放在具有相同名称的段中。 只需根据需要添加内容即可。
-     */
-
+extern "C" void kernel_main()
+{
+    Print::initTerminal();
+    Print::printf("HELLO WORLD!\n");
+    Print::printf("I'm INLOW!\n");
+    Print::printf("I'm %d years old!\n", 2);
+    Print::printf("unsigned int max %u\n", 4294967295);
+    Print::printf("unsigned int min %u\n", 0);
+    Print::printf("signed int max %d\n", 2147483647);
+    Print::printf("signed int min %d\n", -2147483648);
+    Print::printf("hex number 0x%x\n", 4294967295);
 }

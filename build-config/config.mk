@@ -1,9 +1,34 @@
+# MIT License
+# 
+# Copyright (c) 2019 INLOW-OS
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+# 
+
 ARCH := i686
 BUILD_DIR = $(TO_ROOT)/build
-GCC := $(ARCH)-elf-gcc
+CC := $(ARCH)-elf-g++
 
 CFLAGS ?= -O2 -g
-CFLAGS += -std=gnu99 -ffreestanding -fno-exceptions -Wall -Wextra
+# 没有运行时支持，所以-fno-rtti、-fno-exceptions
+CFLAGS += -std=gnu++14 -ffreestanding -fno-exceptions -Wall -Wextra -fno-rtti
+CFLAGS += -I $(TO_ROOT)/kernel/include
 LDFLAGS ?= -T $(TO_ROOT)/kernel/src/linker.ld -ffreestanding -nostdlib
 LIBS ?= -lgcc
 
