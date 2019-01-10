@@ -5,6 +5,23 @@ set -e
 binutils_repo=https://github.com/qvjp/binutils-inlow-2.26.git
 gcc_repo=https://github.com/qvjp/gcc-inlow-6.1.0.git
 
+if [[ "$OSTYPE" == darwin* ]]; then
+    brew install gmp mpfr libmpc automake xorriso qemu
+    rm -rf ~/Downloads/objconv
+    git clone git@github.com:qvjp/objconv.git ~/Downloads/objconv
+    cd ~/Downloads/objconv
+    g++ -o objconv -O2 src/*.cpp && mv objconv /usr/local/bin
+
+    rm -rf ~/Downloads/grub
+    git clone git@github.com:qvjp/grub-inlow-2.0.2.git ~/Downloads/grub
+    cd ~/Downloads/grub
+    ./configure --disable-werror TARGET_CC=i686-inlow-gcc TARGET_OBJCOPY=i686-inlow-objcopy \
+        TARGET_STRIP=i686-inlow-strip TARGET_NM=i686-inlow-nm TARGET_RANLIB=i686-inlow-ranlib --target=i686-elf
+    make -j4 && make install
+
+    echo 'export PATH="$HOME/inlow-toolchain/bin:$PATH"' >> ~/.zshrc
+fi
+
 [ -z "${PREFIX+x}" ] && PREFIX="$HOME/inlow-toolchain"
 [ -z "$SRCDIR" ] && SRCDIR="$HOME/src"
 [ -z "$BUILDDIR" ] && BUILDDIR="$SRCDIR"
@@ -63,4 +80,4 @@ then
 fi
 
 echo Install completed
-echo $PATH
+
