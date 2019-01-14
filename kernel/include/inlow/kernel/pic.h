@@ -22,24 +22,18 @@
  */
 
 /**
- * kernel/src/kernel.cpp
- * 内核main函数
+ * kernel/include/inlow/kernel/pic.h
+ * 初始化PIC
  */
+#ifndef KERNEL_PIC_H__
+#define KERNEL_PIC_H__
 
-#include <stddef.h> /* size_t */
-#include <stdint.h> /* uint8_t */
-#include <inlow/kernel/interrupt.h> /* Interrupt::initPic() Interrupt::enable() */
-#include <inlow/kernel/print.h> /* printf() */
+#define PIC1_COMMAND 0x20
+#define PIC1_DATA 0x21
+#define PIC2_COMMAND 0xA0
+#define PIC2_DATA 0xA1
+#define PIC_EOI 0x20 // End of Interrupt 
 
-extern "C" void kernel_main()
-{
-    Print::initTerminal();
-    Print::printf("HELLO WORLD!\n");
-    Print::printf("I'm INLOW!\n");
-    
-    Interrupt::initPic();
-    Interrupt::enable();
-    // Print::printf("%d\n", 1/0);
-    while(1);
+void pic_remap(void);
 
-}
+#endif /* end KERNEL_PIC_H__ */

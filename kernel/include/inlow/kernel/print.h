@@ -33,6 +33,9 @@ namespace Print
 {
     /* 格式化输出 */
     void printf(const char *format, ...);
+
+    /* 调用此函数将改变屏幕显示颜色，用来提醒或警告，若要恢复之前颜色，需要再次调用initTerminal() */
+    void warnTerminal();
     /* 初始化终端 */
     void initTerminal();
 }
