@@ -22,38 +22,20 @@
  */
 
 /**
- * kernel/src/kernel.cpp
- * 内核main函数
+ * kernel/include/inlow/kernel/physicalmemory.h
+ * 定义物理内存命名空间，并定义物理内存操作方法。
  */
+#ifndef KERNEL_PHYSICALMEMORY_H__
+#define KERNEL_PHYSICALMEMORY_H__
 
-#include <stddef.h> /* size_t */
-#include <stdint.h> /* uint8_t */
-#include <inlow/kernel/addressspace.h> /**/
-#include <inlow/kernel/inlow.h> /* MULTIBOOT_BOOTLOADER_MAGIC */
-#include <inlow/kernel/interrupt.h> /* Interrupt::initPic() Interrupt::enable() */
-#include <inlow/kernel/physicalmemory.h>
-#include <inlow/kernel/print.h> /* printf() */
+#include <inlow/kernel/multiboot.h> /* multiboot_info */
+#include <inlow/kernel/inlow.h> /* inlow_phy_addr_t */
 
-
-extern "C" void kernel_main(uint32_t magic, inlow_phy_addr_t multibootAddress)
+namespace PhysicalMemory
 {
-    if (magic != MULTIBOOT_BOOTLOADER_MAGIC)
-    {
-        Print::warnTerminal();
-        Print::printf("Invalid magic number: 0x%x\n", magic);
-        return;
-    }
-
-    Print::initTerminal();
-    Print::printf("HELLO WORLD!\n");
-    AddressSpace::initialize();
-    Print::printf("AddressSpace Inited\n");
-    multiboot_info* multiboot = (multiboot_info*)kernelSpace->map(multibootAddress, 0x3);
-    PhysicalMemory::initialize(multiboot);
-
-
-    kernelSpace->unMap((inlow_vir_addr_t)multiboot);
-    Interrupt::initPic();
-    Interrupt::enable();
-    while(1);
+    void initialize(multiboot_info* multiboot);
+    void pushPageFrame(inlow_phy_addr_t physicalAddress);
+    inlow_phy_addr_t popPageFrame();
 }
+
+#endif /* KERNEL_PHYSICALMEMORY_H__ */

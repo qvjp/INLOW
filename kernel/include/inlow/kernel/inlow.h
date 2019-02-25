@@ -22,38 +22,21 @@
  */
 
 /**
- * kernel/src/kernel.cpp
- * 内核main函数
+ * kernel/include/inlow/kernel/inlow.h
+ * 内核头文件，定义公共部分
  */
 
-#include <stddef.h> /* size_t */
-#include <stdint.h> /* uint8_t */
-#include <inlow/kernel/addressspace.h> /**/
-#include <inlow/kernel/inlow.h> /* MULTIBOOT_BOOTLOADER_MAGIC */
-#include <inlow/kernel/interrupt.h> /* Interrupt::initPic() Interrupt::enable() */
-#include <inlow/kernel/physicalmemory.h>
-#include <inlow/kernel/print.h> /* printf() */
+#ifndef KERNEL_INLOW_H__
+#define KERNEL_INLOW_H__
+#include <stdint.h> /* uintptr_t */
 
+/* Multiboot 兼容的引导程序传递来的魔数。 */
+#define MULTIBOOT_BOOTLOADER_MAGIC 0x2BADB002
 
-extern "C" void kernel_main(uint32_t magic, inlow_phy_addr_t multibootAddress)
-{
-    if (magic != MULTIBOOT_BOOTLOADER_MAGIC)
-    {
-        Print::warnTerminal();
-        Print::printf("Invalid magic number: 0x%x\n", magic);
-        return;
-    }
+typedef uintptr_t inlow_phy_addr_t;
+typedef uintptr_t inlow_vir_addr_t;
 
-    Print::initTerminal();
-    Print::printf("HELLO WORLD!\n");
-    AddressSpace::initialize();
-    Print::printf("AddressSpace Inited\n");
-    multiboot_info* multiboot = (multiboot_info*)kernelSpace->map(multibootAddress, 0x3);
-    PhysicalMemory::initialize(multiboot);
+#define likely(x) __builtin_expect(!!(x), 1)
+#define unlikely(x) __builtin_expect((x), 0)
 
-
-    kernelSpace->unMap((inlow_vir_addr_t)multiboot);
-    Interrupt::initPic();
-    Interrupt::enable();
-    while(1);
-}
+#endif /* KERNEL_INLOW_H__ */
