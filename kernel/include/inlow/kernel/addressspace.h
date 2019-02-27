@@ -56,11 +56,15 @@ extern "C"
 class AddressSpace
 {
     public:
+        inlow_vir_addr_t allocate(size_t pages);
+        void free(inlow_vir_addr_t virtualAddress, size_t pages);
         inlow_phy_addr_t getPhysicalAddress(inlow_vir_addr_t virtualAddress);
 
         inlow_vir_addr_t map(inlow_phy_addr_t physicalAddress, uint16_t flags);
         inlow_vir_addr_t mapAt(inlow_vir_addr_t virtualAddress, inlow_phy_addr_t physicalAddress, uint16_t flags);
         inlow_vir_addr_t mapAt(size_t pdIndex, size_t ptIndex, inlow_phy_addr_t physicalAddress, uint16_t flags);
+        inlow_vir_addr_t mapRange(inlow_phy_addr_t* physicalAddress, uint16_t flags);
+        inlow_vir_addr_t mapRangeAt(inlow_vir_addr_t virtualAddress, inlow_phy_addr_t* physicalAddress, uint16_t flags);
 
         void unMap(inlow_vir_addr_t virtualAddress);
         static void initialize();

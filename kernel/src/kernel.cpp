@@ -33,6 +33,7 @@
 #include <inlow/kernel/interrupt.h> /* Interrupt::initPic() Interrupt::enable() */
 #include <inlow/kernel/physicalmemory.h>
 #include <inlow/kernel/print.h> /* printf() */
+#include <stdlib.h> /* malloc() free() */
 
 
 extern "C" void kernel_main(uint32_t magic, inlow_phy_addr_t multibootAddress)
@@ -55,5 +56,22 @@ extern "C" void kernel_main(uint32_t magic, inlow_phy_addr_t multibootAddress)
     kernelSpace->unMap((inlow_vir_addr_t)multiboot);
     Interrupt::initPic();
     Interrupt::enable();
+    uint32_t *a = (uint32_t*)malloc(sizeof(uint32_t));
+    // uint32_t *b = (uint32_t*)malloc(sizeof(uint32_t));
+    uint32_t *c = (uint32_t*)malloc(sizeof(uint32_t));
+    // uint32_t *d = (uint32_t*)malloc(sizeof(uint32_t));
+    Print::printf("FUCK: %x\n", a);
+    // Print::printf("FUCK: %x\n", b);
+    // Print::printf("FUCK: %x\n", c);
+    // Print::printf("FUCK: %x\n", d);
+    free(a);
+    // free(b);
+    // free(c);
+    // free(d);
+    uint32_t *b = (uint32_t*)malloc(sizeof(uint32_t));
+    Print::printf("FUCK: %x\n", b);
+    free(b);
+    free(c);
+
     while(1);
 }

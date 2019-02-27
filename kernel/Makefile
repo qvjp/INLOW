@@ -44,15 +44,15 @@ OBJ := $(addprefix $(BUILD)/, $(OBJ))
 all: $(BUILD)/kernel
 
 $(BUILD)/kernel: $(OBJ)
-	$(CC) $(LDFLAGS) -o $(BUILD)/kernel.elf $^ $(LIBS)
+	$(CXX) $(LDFLAGS) -o $(BUILD)/kernel.elf $^ $(LIBS)
 
 $(BUILD)/%.o: src/%.cpp
 	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -c -o $@ $^
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $^
 
 $(BUILD)/%.o: src/%.s
 	@mkdir -p $(dir $@)
-	$(CC) $(ASFLAGS) $(CFLAGS) -c -o $@ $^
+	$(CXX) $(ASFLAGS) $(CPPFLAGS) -c -o $@ $^
 
 clean:
 	rm -rf $(BUILD)

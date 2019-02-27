@@ -24,7 +24,16 @@
 TO_ROOT = .
 include $(TO_ROOT)/build-config/config.mk
 
-all: kernel strip-debug iso
+all: install-headers libc install-libc kernel strip-debug iso
+
+install-headers:
+	$(MAKE) -C libc install-headers
+
+libc:
+	$(MAKE) -C libc
+
+install-libc:
+	$(MAKE) -C libc install
 
 kernel:
 	$(MAKE) -C kernel
@@ -58,7 +67,7 @@ qemu-dbg: $(ISO)
 	qemu-system-i386 -cdrom $^ -S -s
 
 clean:
-	rm -rf $(BUILD_DIR)
+	rm -rf $(BUILD_DIR) ./sysroot
 	rm -rf $(ISO)
 
-.PHONY: all kernel iso qemu clean
+.PHONY: all kernel iso qemu clean libc install-headers install-libc strip-debug distclean
