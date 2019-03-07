@@ -59,14 +59,14 @@ static inline bool isAddressInUse(inlow_phy_addr_t physicalAddress)
 void PhysicalMemory::initialize(multiboot_info* multiboot)
 {
     /* mem_* 是否有效？ */
-    if (CHECK_MULTIBOOT_FLAG (multiboot->flags, 0))
+    /*if (CHECK_MULTIBOOT_FLAG (multiboot->flags, 0))
         Print::printf("mem_lower = %uKB, mem_upper = %uKB, Available Memory = %uKB\n",
         (uint32_t)multiboot->mem_lower, (uint32_t)multiboot->mem_upper, 
-        (uint32_t)(multiboot->mem_lower+multiboot->mem_upper));
+        (uint32_t)(multiboot->mem_lower+multiboot->mem_upper)); */
     /* mmap_* 是否有效 */
     if(!CHECK_MULTIBOOT_FLAG(multiboot->flags,6))
         return;
-    Print::printf("Memory map address: 0x%x, length: %d bytes\n", multiboot->mmap_addr, multiboot->mmap_length);
+    /* Print::printf("Memory map address: 0x%x, length: %d bytes\n", multiboot->mmap_addr, multiboot->mmap_length); */
 
     inlow_phy_addr_t mmapPhys = (inlow_phy_addr_t) multiboot->mmap_addr;
     inlow_phy_addr_t mmapAligned = mmapPhys & ~0xFFF;
@@ -82,10 +82,10 @@ void PhysicalMemory::initialize(multiboot_info* multiboot)
         multiboot_mmap_entry* mmapEntry = (multiboot_mmap_entry*) mmap;
         if (mmapEntry->type == MULTIBOOT_MEMORY_AVAILABLE && mmapEntry->base_addr + mmapEntry->length <= UINTPTR_MAX)
         {
-            Print::printf("size: %d bytes ", mmapEntry->size);
+            /*Print::printf("size: %d bytes ", mmapEntry->size);
             Print::printf("address: 0x%x ", mmapEntry->base_addr);
             Print::printf("length: 0x%x ", mmapEntry->length);
-            Print::printf("type: %d\n", mmapEntry->type);
+            Print::printf("type: %d\n", mmapEntry->type);*/
             inlow_phy_addr_t addr = (inlow_phy_addr_t) mmapEntry->base_addr;
             for (uint64_t i = 0; i < mmapEntry->length; i += 0x1000)
             {
@@ -97,7 +97,7 @@ void PhysicalMemory::initialize(multiboot_info* multiboot)
         mmap += mmapEntry->size + 4;
     }
     kernelSpace->unMap(virtualAddress);
-    Print::printf("We have %d free page frames\n", stackUsed);
+    /* Print::printf("We have %d free page frames\n", stackUsed); */
 }
 
 /**

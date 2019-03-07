@@ -34,7 +34,9 @@ OBJ := \
 	kernel.o \
 	pic.o \
 	physicalmemory.o \
-	print.o
+	print.o \
+	process.o
+
 OBJ += arch/i686/interrupt.o \
 	arch/i686/loader.o
 

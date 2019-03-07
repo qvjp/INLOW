@@ -30,6 +30,7 @@
 #include <inlow/kernel/pic.h>       /* pic_remap() PIC1_COMMAND ... */
 #include <inlow/kernel/port.h>      /* outportb() */
 #include <inlow/kernel/print.h>     /* printf() warnTerminal() */
+#include <inlow/kernel/process.h>   /* Process::schedule(r) */
 
 /**
  * 挨个设置IDT中的ISR
@@ -120,12 +121,9 @@ void Interrupt::initPic()
     irqs_install();
 }
 
-extern "C" void interrupt_handler(struct regs *r)
+extern "C" struct regs* interrupt_handler(struct regs *r)
 {
-    /**
-     * 我们所有的ISR都将通过这个方法进入具体的处理程序
-     * 现在只是简单的打印异常信息并通过一个死循环停止系统运行
-    */
+    struct regs* newContext = r;
     if (r->int_no < 32)
     {
         Print::warnTerminal();
@@ -145,6 +143,12 @@ extern "C" void interrupt_handler(struct regs *r)
         void (*handler)(struct regs *r);
         if (r->int_no != 32)
             Print::printf("IRQ %d occurred!\n", r->int_no - 32);
+        /* 当时钟中断发生时，进行进程调度 */
+        else if(r->int_no == 32)
+        {
+            newContext = Process::schedule(r);
+        }
+        
         handler = isr_routines[r->int_no];
         if (handler)
         {
@@ -165,4 +169,5 @@ extern "C" void interrupt_handler(struct regs *r)
     {
         Print::printf("Unknow interrupt %u!\n", r->int_no);
     }
+    return newContext;
 }
