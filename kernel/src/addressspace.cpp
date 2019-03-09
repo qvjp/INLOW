@@ -113,7 +113,10 @@ inlow_vir_addr_t AddressSpace::allocate(size_t pages_number)
             return 0;
     }
     physicalAddresses[pages_number] = 0;
-    return mapRange(physicalAddresses, 0x3);
+    int flags = PAGE_PRESENT | PAGE_WRITABLE;
+    if (this != kernelSpace)
+        flags |= PAGE_USER;
+    return mapRange(physicalAddresses, flags);
 }
 
 /**
@@ -219,7 +222,7 @@ bool AddressSpace::isFree(size_t pdOffset, size_t ptOffset)
     }
     else
     {
-        pageDirectory = (uintptr_t*) kernelSpace->map(pageDir, 0x1);
+        pageDirectory = (uintptr_t*) kernelSpace->map(pageDir, PAGE_PRESENT);
     }
 
     if (!pageDirectory[pdOffset])
@@ -227,7 +230,7 @@ bool AddressSpace::isFree(size_t pdOffset, size_t ptOffset)
     else
     {
         if (this != kernelSpace)
-            pageTable = (uintptr_t*) kernelSpace->map(pageDirectory[pdOffset], 0x1);
+            pageTable = (uintptr_t*) kernelSpace->map(pageDirectory[pdOffset], PAGE_PRESENT);
     
         result = !pageTable[ptOffset];
     }
@@ -305,7 +308,10 @@ inlow_vir_addr_t AddressSpace::mapAt(size_t pdOffset, size_t ptOffset, inlow_phy
     if (!pageDirectory[pdOffset])
     {
         inlow_phy_addr_t pageTablePhys = PhysicalMemory::popPageFrame();
-        pageDirectory[pdOffset] = pageTablePhys | 0x3;
+        int pdFlags = PAGE_PRESENT | PAGE_WRITABLE;
+        if (this != kernelSpace)
+            pdFlags |= PAGE_USER;
+        pageDirectory[pdOffset] = pageTablePhys | pdFlags;
 
         if (this != kernelSpace)
         {
@@ -321,7 +327,7 @@ inlow_vir_addr_t AddressSpace::mapAt(size_t pdOffset, size_t ptOffset, inlow_phy
                 uintptr_t* pageDir = (uintptr_t*) map(addressSpace->pageDir, 0x3);
                 pageDir[pdOffset] = pageTablePhys | 0x3;
                 unMap((inlow_vir_addr_t) pageDir);
-                addressSpace++;
+                addressSpace = addressSpace->next;
             }
         }
     }
