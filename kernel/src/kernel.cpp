@@ -35,16 +35,21 @@
 #include <inlow/kernel/print.h>         /* printf() */
 #include <inlow/kernel/process.h>
 #include <stdlib.h>                     /* malloc() free() */
-#include <string.h>
-
-
+#include <string.h>                     /* memcpy() */
 
 
 static void processA() {
-    while (true);
+    /* 内连汇编中如下边的"a"表示*ex寄存器"b"是*bx寄存器 */
+    __asm__ __volatile__ ("int $73" :: "a"(1), "b"(0));
 }
 
+static void processB() {
+    __asm__ __volatile__ ("int $73" :: "a"(1), "b"(1));
+}
 
+static void processC() {
+    __asm__ __volatile__ ("int $73" :: "a"(1), "b"(2));
+}
 
 static Process* startProcesses(void* function) {
     AddressSpace* addressSpace = kernelSpace->fork();
@@ -55,9 +60,6 @@ static Process* startProcesses(void* function) {
     kernelSpace->unMap(processMapped);
     return Process::startProcess(processCode, addressSpace);
 }
-
-
-
 
 extern "C" void kernel_main(uint32_t magic, inlow_phy_addr_t multibootAddress)
 {
@@ -78,11 +80,12 @@ extern "C" void kernel_main(uint32_t magic, inlow_phy_addr_t multibootAddress)
     PhysicalMemory::initialize(multiboot);
     Print::printf("Physical Memory Initialized\n");
 
-
     Process::initialize();
     Print::printf("Processes Initialized\n");
 
     startProcesses((void*) processA);
+    startProcesses((void*) processB);
+    startProcesses((void*) processC);
 
     Interrupt::initPic();
     Interrupt::enable();

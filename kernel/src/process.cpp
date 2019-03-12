@@ -25,11 +25,11 @@
  * kernel/src/process.cpp
  * 实现INLOW中的进程
  */
-#include <inlow/kernel/addressspace.h> /*  AddressSpace* fork(); */
+#include <inlow/kernel/print.h>
 #include <inlow/kernel/process.h>
 #include <stdlib.h>                    /* malloc() */
 
-static Process* currentProcess;
+Process* Process::current;
 static Process* firstProcess;
 static Process* idleProcess;
 
@@ -41,6 +41,7 @@ Process::Process()
 {
     addressSpace = kernelSpace;
     interruptContext = nullptr;
+    prev = nullptr;
     next = nullptr;
     stack = nullptr;
     kstack = nullptr;
@@ -54,11 +55,12 @@ void Process::initialize()
 {
     idleProcess = (Process*)malloc(sizeof(Process));
     idleProcess->addressSpace = kernelSpace;
+    idleProcess->prev = 0;
     idleProcess->next = 0;
     idleProcess->kstack = 0;
     idleProcess->stack = 0;
     idleProcess->interruptContext = (struct regs*)malloc(sizeof(struct regs));
-    currentProcess = idleProcess;
+    current = idleProcess;
     firstProcess = nullptr;
 }
 
@@ -70,26 +72,26 @@ void Process::initialize()
  */
 struct regs* Process::schedule(struct regs* context)
 {
-    currentProcess->interruptContext = context;
-    if (currentProcess->next)
+    current->interruptContext = context;
+    if (current->next)
     {
-        currentProcess = currentProcess->next;
+        current = current->next;
     }
     else
     {
         if (firstProcess)
         {
-            currentProcess = firstProcess;
+            current = firstProcess;
         }
         else
         {
-            currentProcess = idleProcess;
+            current = idleProcess;
         }
     }
-    setKernelStack(currentProcess->kstack);
+    setKernelStack((uintptr_t)current->kstack + 0x1000);
 
-    currentProcess->addressSpace->activate();
-    return currentProcess->interruptContext;
+    current->addressSpace->activate();
+    return current->interruptContext;
 }
 
 /**
@@ -100,6 +102,8 @@ struct regs* Process::schedule(struct regs* context)
 Process* Process::startProcess(void* entry, AddressSpace* addressSpace)
 {
     Process* process = (Process*)malloc(sizeof(Process));
+    process->prev = 0;
+    process->next = 0;
     /**
      * 分配两个栈，内核栈用来保存上下文信息
      * 用户栈处理其他
@@ -130,6 +134,26 @@ Process* Process::startProcess(void* entry, AddressSpace* addressSpace)
     process->addressSpace = addressSpace;
 
     process->next = firstProcess;
+    if (process->next)
+    {
+        process->next->prev = process;
+    }
     firstProcess = process;
     return process;
+}
+
+/**
+ * 进程退出
+ * TODO：回收资源
+ */
+void Process::exit(int status)
+{
+    if (next)
+        next->prev = prev;
+    if (prev)
+        prev->next = next;
+    if (this == firstProcess)
+        firstProcess = next;
+
+    Print::printf("Process exited with status: %d\n", status);
 }

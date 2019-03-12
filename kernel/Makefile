@@ -35,10 +35,12 @@ OBJ := \
 	pic.o \
 	physicalmemory.o \
 	print.o \
-	process.o
+	process.o \
+	syscall.o
 
 OBJ += arch/i686/interrupt.o \
-	arch/i686/loader.o
+	arch/i686/loader.o \
+	arch/i686/syscall.o
 
 OBJ := $(addprefix $(BUILD)/, $(OBJ))
 
