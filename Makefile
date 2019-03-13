@@ -63,6 +63,10 @@ $(ISO): $(BUILD_DIR)/$(ARCH)/kernel/kernel.elf
 qemu: $(ISO)
 	qemu-system-i386 -cdrom $^
 
+# 此模式Esc + 2再输入quit退出
+qemu-curses: $(ISO)
+	qemu-system-i386 -cdrom $^ -curses
+
 qemu-dbg: $(ISO)
 	qemu-system-i386 -cdrom $^ -S -s
 
