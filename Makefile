@@ -24,7 +24,7 @@
 TO_ROOT = .
 include $(TO_ROOT)/build-config/config.mk
 
-all: install-headers libc install-libc kernel strip-debug iso
+all: install-headers libc install-libc kernel strip-debug utils iso
 
 install-headers:
 	$(MAKE) -C libc install-headers
@@ -50,15 +50,22 @@ $(ISO): $(BUILD_DIR)/$(ARCH)/kernel/kernel.elf
 	mkdir iso/boot
 	mkdir iso/boot/grub
 	cp $(BUILD_DIR)/$(ARCH)/kernel/kernel.elf iso/boot/kernel.elf
+	cp $(BUILD_DIR)/utils/bar iso/
+	cp $(BUILD_DIR)/utils/foo iso/
 	echo 'set timeout=0'                   >  iso/boot/grub/grub.cfg
 	echo 'set default=0'                   >> iso/boot/grub/grub.cfg
 	echo ''                                >> iso/boot/grub/grub.cfg
 	echo 'menuentry "INLOW" {'             >> iso/boot/grub/grub.cfg
 	echo '    multiboot /boot/kernel.elf'  >> iso/boot/grub/grub.cfg
+	echo '    module /bar'                 >> iso/boot/grub/grub.cfg
+	echo '    module /foo'                 >> iso/boot/grub/grub.cfg
 	echo '    boot'                        >> iso/boot/grub/grub.cfg
 	echo '}'                               >> iso/boot/grub/grub.cfg
 	grub-mkrescue --output=$(ISO) iso
 	rm -rf iso
+
+utils:
+	$(MAKE) -C utils
 
 qemu: $(ISO)
 	qemu-system-i386 -cdrom $^
@@ -74,4 +81,4 @@ clean:
 	rm -rf $(BUILD_DIR) ./sysroot
 	rm -rf $(ISO)
 
-.PHONY: all kernel iso qemu clean libc install-headers install-libc strip-debug distclean
+.PHONY: all kernel iso qemu clean libc install-headers install-libc strip-debug distclean utils

@@ -45,6 +45,7 @@ private:
     void* stack;                      /* 用户栈 */
 public:
     static void initialize();
+    static Process* loadELF(inlow_vir_addr_t elf);
     static struct regs* schedule(struct regs* context);
     static Process* startProcess(void* entry, AddressSpace* addressspace);
     static Process* current;

@@ -22,23 +22,12 @@
  */
 
 /**
- * kernel/include/inlow/kernel/inlow.h
- * 内核头文件，定义公共部分
+ * utils/foo.s
+ * 测试模块，直接退出，状态码0
  */
 
-#ifndef KERNEL_INLOW_H__
-#define KERNEL_INLOW_H__
-#include <stdint.h> /* uintptr_t */
-
-/* Multiboot 兼容的引导程序传递来的魔数。 */
-#define MULTIBOOT_BOOTLOADER_MAGIC 0x2BADB002
-
-typedef uintptr_t inlow_phy_addr_t;
-typedef uintptr_t inlow_vir_addr_t;
-
-#define likely(x) __builtin_expect(!!(x), 1)
-#define unlikely(x) __builtin_expect((x), 0)
-
-#define ALIGN_UP(value, alignment) ((((value) - 1) & ~((alignment) - 1)) + (alignment))
-
-#endif /* KERNEL_INLOW_H__ */
+.global _start
+_start:
+    mov $1, %eax
+    mov $0, %ebx
+    int $73
