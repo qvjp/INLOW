@@ -25,6 +25,7 @@
  * kernel/src/physicalmemory.cpp
  * 实现物理内存基本操作
  */
+#include <assert.h> /* assert() */
 #include <inlow/kernel/addressspace.h>
 #include <inlow/kernel/physicalmemory.h>
 #include <inlow/kernel/print.h>
@@ -106,6 +107,7 @@ void PhysicalMemory::initialize(multiboot_info* multiboot)
  */
 void PhysicalMemory::pushPageFrame(inlow_phy_addr_t physicalAddress)
 {
+    assert(!(physicalAddress & 0xFFF));
     if (unlikely(stackLeft == 0))
     {
         kernelSpace->mapAt((inlow_vir_addr_t) stack - stackUsed * 4 - 0x1000, physicalAddress, 0x3);
