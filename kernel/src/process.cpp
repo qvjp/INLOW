@@ -29,6 +29,7 @@
 #include <inlow/kernel/physicalmemory.h>/* popPageFrame*/
 #include <inlow/kernel/print.h>         /* printf */
 #include <inlow/kernel/process.h>
+#include <inlow/kernel/terminal.h>
 #include <stdlib.h>                     /* malloc */
 #include <string.h>                     /* memset memcpy*/
 
@@ -48,6 +49,7 @@ Process::Process()
     next = nullptr;
     stack = nullptr;
     kstack = nullptr;
+    memset(fd, 0, sizeof(fd));
 }
 
 /**
@@ -183,6 +185,9 @@ Process* Process::startProcess(void* entry, AddressSpace* addressSpace)
 
     process->addressSpace = addressSpace;
 
+    // Initialize file descriptors
+    process->fd[1] = new FileDescription(&terminal); // stdout
+    
     process->next = firstProcess;
     if (process->next)
     {

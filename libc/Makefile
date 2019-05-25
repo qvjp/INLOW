@@ -21,7 +21,8 @@ COMMON_OBJ := \
 	string/memcmp \
 	string/memcpy \
 	string/memmove \
-	string/memset
+	string/memset \
+	string/strlen
 
 CRT_OBJ := \
 	$(BUILD)/arch/i686/crt0.o \
@@ -37,7 +38,8 @@ LIBC_OBJ := \
 	$(COMMON_OBJ) \
 	stdlib/_Exit \
 	stdlib/exit \
-	unistd/_exit
+	unistd/_exit \
+	unistd/write
 
 LIBC_OBJ += \
 	arch/i686/syscall

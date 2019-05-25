@@ -29,6 +29,7 @@
 #define KERNEL_PROCESS_H__
 
 #include <inlow/kernel/addressspace.h> /* AddressSpace s*/
+#include <inlow/kernel/filedescription.h>
 #include <inlow/kernel/interrupt.h>    /* struct regs */
 
 class Process
@@ -43,6 +44,8 @@ private:
     Process* next;
     void* kstack;                     /* 内核栈 */
     void* stack;                      /* 用户栈 */
+public:
+    FileDescription* fd[20];
 public:
     static void initialize();
     static Process* loadELF(inlow_vir_addr_t elf);
