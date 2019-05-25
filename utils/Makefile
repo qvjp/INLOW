@@ -26,9 +26,10 @@ ARCH ?= i686
 TO_ROOT = ..
 include $(TO_ROOT)/build-config/config.mk
 
-BUILD = $(BUILD_DIR)/utils
+CFLAGS ?= -O2 -g
+CFLAGS += -Wall -Wextra
 
-LDFLAGS := --sysroot=$(SYSROOT) -nostdlib
+BUILD = $(BUILD_DIR)/utils
 
 PROGRAMS = \
 	bar \
@@ -36,12 +37,9 @@ PROGRAMS = \
 
 all: $(addprefix $(BUILD)/, $(PROGRAMS))
 
-$(BUILD)/%: $(BUILD)/%.o
-	$(CC) $(LDFLAGS) -o $@ $^
-
-$(BUILD)/%.o: %.s
+$(BUILD)/%: %.c
 	@mkdir -p $(dir $@)
-	$(CC) $(ASFLAGS) -c -o $@ $^
+	$(CC) $(CFLAGS) -o $@ $^
 
 clean:
 	rm -rf $(BUILD)

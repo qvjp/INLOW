@@ -26,8 +26,9 @@
  * 测试模块，直接退出，状态码73
  */
 
-.global _start
-_start:
-    mov $1, %eax
-    mov $73, %ebx
-    int $73
+int main(int argc, char* argv[])
+{
+    (void) argc;
+    (void) argv;
+    return 27;
+}

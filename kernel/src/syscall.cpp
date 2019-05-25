@@ -7,8 +7,8 @@
  */
 static const void* syscallList[NUM_SYSCALLS] =
 {
-    (void*) Syscall::pad,
-
+    // (void*) Syscall::pad,
+    
     (void*) Syscall::exit,
 };
 
@@ -27,16 +27,16 @@ extern "C" const void* getSyscallHandler(unsigned interruptNum)
  * 系统调用：pad()
  * 保留的0号系统调用
  */
-void Syscall::pad()
-{
-    const char* INLOW = "INLOW";
-    int num = 0;
-    for (int i = 0; i < 5; i++)
-    {
-        num +=  INLOW[i] - 'A' + 1;
-    }
-    Print::printf("Pad: %d\n", num);
-}
+// void Syscall::pad()
+// {
+//     const char* INLOW = "INLOW";
+//     int num = 0;
+//     for (int i = 0; i < 5; i++)
+//     {
+//         num +=  INLOW[i] - 'A' + 1;
+//     }
+//     Print::printf("Pad: %d\n", num);
+// }
 
 /**
  * 系统调用：exit()
@@ -50,7 +50,10 @@ void Syscall::pad()
 void __attribute__((__noreturn__)) Syscall::exit(int status)
 {
     Process::current->exit(status);
-    __asm__ __volatile__ ("int $49");
+    /**
+     * 0x31 系统调度
+     */
+    __asm__ __volatile__ ("int $0x31");
     __builtin_unreachable();
 }
 

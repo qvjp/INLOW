@@ -25,6 +25,9 @@
  * lib/include/assert.h
  * 断言
  */
+
+#include <sys/cdefs.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -34,7 +37,7 @@ extern "C" {
 #define assert(ignore) ((void) 0)
 #else
 
-__attribute__(( __noreturn__)) void __assert(
+__dead void __assert(
     const char*, const char*, unsigned int, const char*);
 
 #define assert(e) ((e) ? (void) 0 : __assert(#e, __FILE__, __LINE__, __func__))

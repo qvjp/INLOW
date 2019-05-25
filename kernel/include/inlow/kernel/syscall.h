@@ -32,7 +32,7 @@
 
 namespace Syscall
 {
-    void pad(void);
+    // void pad(void);
     __attribute__((__noreturn__)) void exit(int status);
     void badSyscall();
 }

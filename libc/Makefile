@@ -8,44 +8,78 @@ BUILD = $(BUILD_DIR)/libc
 
 ARFLAGS := -rcs
 CFLAGS ?= -O0 -g
-CFLAGS += -std=gnu11 -ffreestanding -Wall -Wextra
-CPPFLAGS += -I include
+CFLAGS += --sysroot=$(SYSROOT) -std=gnu11 -ffreestanding -Wall -Wextra
+CPPFLAGS := -I include -I $(SYSROOT)/usr/include
 
-LIBK_OBJ := \
-	stdlib/free \
-	stdlib/malloc \
+LIBC_FLAGS += -D__is_inlow_libc
+LIBK_FLAGS += -D__is_inlow_libk
+
+
+COMMON_OBJ := \
 	string/memcmp \
 	string/memcpy \
 	string/memmove \
-	string/memset \
-	string/strlen
+	string/memset
 
+CRT_OBJ := \
+	$(BUILD)/arch/i686/crt0.o \
+	$(BUILD)/arch/i686/crti.o \
+	$(BUILD)/arch/i686/crtn.o
+
+LIBK_OBJ := \
+	$(COMMON_OBJ) \
+	stdlib/free \
+	stdlib/malloc
+
+LIBC_OBJ := \
+	$(COMMON_OBJ) \
+	stdlib/_Exit \
+	stdlib/exit \
+	unistd/_exit
+
+LIBC_OBJ += \
+	arch/i686/syscall
+
+LIBC_OBJ := $(addprefix $(BUILD)/, $(addsuffix .o, $(LIBC_OBJ)))
 LIBK_OBJ := $(addprefix $(BUILD)/, $(addsuffix .libk.o, $(LIBK_OBJ)))
 
-all: $(BUILD)/libk.a
 
-install: install-headers install-libk
+all: $(BUILD)/libc.a $(BUILD)/libk.a $(CRT_OBJ)
+
+install: install-headers install-libs
 
 install-headers: $(SYSROOT)/usr/include
 
-install-libk: $(BUILD)/libk.a
+install-libs: $(BUILD)/libc.a $(BUILD)/libk.a $(CRT_OBJ)
 	@mkdir -p $(SYSROOT)/usr/lib
 	cp -f $^ $(SYSROOT)/usr/lib
 
-$(SYSROOT)/usr/include: include
+$(SYSROOT)/usr/include: include $(TO_ROOT)/kernel/include
 	@mkdir -p $@
 	@touch $@
-	cp -fr include $(SYSROOT)/usr
+	cp -rf $^ $(SYSROOT)/usr
+
+
+$(BUILD)/libc.a: $(LIBC_OBJ)
+	$(AR) $(ARFLAGS) $@ $^
 
 # 使用ar将*.libk.o创建成库libk.a
 $(BUILD)/libk.a: $(LIBK_OBJ)
 	$(AR) $(ARFLAGS) $@ $^
 
+$(BUILD)/%.o: src/%.c
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(LIBC_FLAGS) -c -o $@ $^
+
+$(BUILD)/%.o: src/%.s
+	@mkdir -p $(dir $@)
+	$(CC) $(ASFLAGS) $(CPPFLAGS) $(LIBC_FLAGS) -c -o $@ $^
+
 $(BUILD)/%.libk.o: src/%.c
 	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $^
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(LIBK_FLAGS) -c -o $@ $^
 
 clean:
 	rm -rf $(BUILD)
 
-.PHONY: all install install-headers install-libk clean
+.PHONY: all install install-headers install-libs clean

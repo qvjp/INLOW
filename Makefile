@@ -42,14 +42,14 @@ iso: $(ISO)
 
 # 为调试生成kernel.sym，并删除kernel.elf中的多余调试信息
 strip-debug:
-	objcopy --only-keep-debug $(BUILD_DIR)/$(ARCH)/kernel/kernel.elf $(BUILD_DIR)/kernel.sym
-	objcopy --strip-debug $(BUILD_DIR)/$(ARCH)/kernel/kernel.elf
+	i686-inlow-objcopy --only-keep-debug $(BUILD_DIR)/kernel/kernel.elf $(BUILD_DIR)/kernel.sym
+	i686-inlow-objcopy --strip-debug $(BUILD_DIR)/kernel/kernel.elf
 
-$(ISO): $(BUILD_DIR)/$(ARCH)/kernel/kernel.elf
+$(ISO): $(BUILD_DIR)/kernel/kernel.elf
 	mkdir iso
 	mkdir iso/boot
 	mkdir iso/boot/grub
-	cp $(BUILD_DIR)/$(ARCH)/kernel/kernel.elf iso/boot/kernel.elf
+	cp $(BUILD_DIR)/kernel/kernel.elf iso/boot/kernel.elf
 	cp $(BUILD_DIR)/utils/bar iso/
 	cp $(BUILD_DIR)/utils/foo iso/
 	echo 'set timeout=0'                   >  iso/boot/grub/grub.cfg
@@ -78,7 +78,7 @@ qemu-dbg: $(ISO)
 	qemu-system-i386 -cdrom $^ -S -s
 
 clean:
-	rm -rf $(BUILD_DIR) ./sysroot
+	rm -rf build ./sysroot
 	rm -rf $(ISO)
 
 .PHONY: all kernel iso qemu clean libc install-headers install-libc strip-debug distclean utils

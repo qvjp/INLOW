@@ -25,18 +25,31 @@
  * lib/include/stdlib.h
  * 标准库定义
  */
-#ifndef STDLIB_H__
-#define STDLIB_H__
+#ifndef STDLIB_H_
+#define STDLIB_H_
 
-#include <stddef.h> /* size_t NULL */
+#include <sys/cdefs.h>
+#define __need_NULL
+#define __need_size_t
+#include <sys/libc-types.h>
+// #include <stddef.h> /* size_t NULL */
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif /* __cplusplus */
 
+__dead void _Exit(int);
+__dead void exit(int);
+
 void free(void*);
 void* malloc(size_t);
+
+__dead void abort(void);
+
+int atexit(void (*)(void));
+int atio(const char*);
+char* getenv(const char*);
 
 #ifdef __cplusplus
 }

@@ -24,7 +24,23 @@
 TO_ROOT = ..
 include $(TO_ROOT)/build-config/config.mk
 
-BUILD = $(BUILD_DIR)/$(ARCH)/kernel
+# 在某些平台‘/’会被视为注释字符，也就不能在表达式中使用，--divide使‘/’变为正常字符，但不会影响
+# 在行开头使用的‘/’进行注释的行为
+ASFLAGS += -Wa,--divide -g
+CXXFLAGS ?= -O0 -g
+# 没有运行时支持，所以-fno-rtti、-fno-exceptions
+CXXFLAGS += --sysroot=$(SYSROOT) -std=gnu++14 -ffreestanding -fno-exceptions -Wall -Wextra -fno-rtti
+# CPPFLAGS中CPP是C PreProcessor的缩写
+CPPFLAGS += -I include -I $(SYSROOT)/usr/include
+LDFLAGS ?= --sysroot=$(SYSROOT) -T src/linker.ld -ffreestanding -nostdlib
+BUILD = $(BUILD_DIR)/kernel
+
+CRTI_0 := $(shell $(CXX) $(CXXFLAGS) -print-file-name=crti.o)
+CRTBEGIN_0 := $(shell $(CXX) $(CXXFLAGS) -print-file-name=crtbegin.o)
+CRTEND_0 := $(shell $(CXX) $(CXXFLAGS) -print-file-name=crtend.o)
+CRTN_0 := $(shell $(CXX) $(CXXFLAGS) -print-file-name=crtn.o)
+START_OBJ := $(CRTI_0) $(CRTBEGIN_0)
+END_OBJ := $(CRTEND_0) $(CRTN_0)
 
 OBJ := \
 	addressspace.o \
@@ -43,7 +59,7 @@ OBJ += arch/i686/interrupt.o \
 	arch/i686/loader.o \
 	arch/i686/syscall.o
 
-OBJ := $(addprefix $(BUILD)/, $(OBJ))
+OBJ := $(START_OBJ) $(addprefix $(BUILD)/, $(OBJ)) $(END_OBJ)
 
 
 all: $(BUILD)/kernel

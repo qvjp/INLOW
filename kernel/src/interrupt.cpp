@@ -87,10 +87,10 @@ void irqs_install()
     idt_set_gate(45, (unsigned)isr_45, 0x08, IDT_INTERRUPT_GATE | IDT_RING0 | IDT_PRESENT);
     idt_set_gate(46, (unsigned)isr_46, 0x08, IDT_INTERRUPT_GATE | IDT_RING0 | IDT_PRESENT);
     idt_set_gate(47, (unsigned)isr_47, 0x08, IDT_INTERRUPT_GATE | IDT_RING0 | IDT_PRESENT);
+    idt_set_gate(48, (unsigned)syscallHandler, 0x08, IDT_INTERRUPT_GATE | IDT_RING3 | IDT_PRESENT);
 
-    idt_set_gate(48, (unsigned)isr_48, 0x08, IDT_INTERRUPT_GATE | IDT_RING0 | IDT_PRESENT);
+    // idt_set_gate(48, (unsigned)isr_48, 0x08, IDT_INTERRUPT_GATE | IDT_RING0 | IDT_PRESENT);
     idt_set_gate(49, (unsigned)isr_49, 0x08, IDT_INTERRUPT_GATE | IDT_RING0 | IDT_PRESENT);
-    idt_set_gate(73, (unsigned)syscallHandler, 0x08, IDT_INTERRUPT_GATE | IDT_RING3 | IDT_PRESENT);
 
 }
 
@@ -133,7 +133,7 @@ extern "C" struct regs* interrupt_handler(struct regs *r)
     {
         Print::warnTerminal();
         Print::printf("eax: 0x%x, ebx: 0x%x, ecx: 0x%x, edx: 0x%x\n", r->eax, r->ebx, r->ecx, r->edx);
-        Print::printf("edi: 0x%x, esi: 0x%x, ebp: 0x%x, esp: 0x%x\n", r->edi, r->esi, r->ebp, r->esp);
+        Print::printf("edi: 0x%x, esi: 0x%x, ebp: 0x%x, esp: 0x%x\n", r->edi, r->esi, r->ebp, r->useresp);
         Print::printf("cs: 0x%x, eip: 0x%x, eflags: 0x%x, ss: 0x%x\n", r->cs, r->eip, r->eflags, r->ss);
         Print::printf("%s", exception_messages[r->int_no]);
         Print::printf(" Exception. System Halted!\n");

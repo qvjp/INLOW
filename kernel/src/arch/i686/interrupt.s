@@ -55,24 +55,38 @@ isr_\no:
  */
 
 isr_commonHandler:
-    pusha           /* push eax, ecx, edx, ebx, esp, ebp, esi, edi. */
+    push %ebp
+    push %edi
+    push %esi
+    push %edx
+    push %ecx
+    push %ebx
+    push %eax
 
-    /* 切换到内核数据段处理中断 */
+    # Switch to kernel data segment
     mov $0x10, %ax
     mov %ax, %ds
 
-    push %esp       /* interrupt_handler的参数，指向刚pusha后的栈d顶 */
-    call interrupt_handler  /* 调用C语言编写的中断处理程序 */
+    mov %esp, %eax
+    and $(~0xFF), %esp # Align the stack
+    sub $12, %esp
+    push %eax
 
-    /* 恢复现场的顺序和保存现场的顺序正好相反 */
-    mov %eax, %esp  /* eax是interrupt_handler的返回值，也就是newContext */
+    call interrupt_handler
+    mov %eax, %esp
 
-    /* 处理完中断切换到用户数据段 */
-    mov $0x23, %ax  /* 0x23 = 0x18 | 0x3 */
+    # Switch back to user data segment
+    mov $0x23, %ax
     mov %ax, %ds
-    popa            /* pop edi, esi, ebp, esp, ebx, edx, ecx, eax */
 
-    add $8, %esp    /* 从堆栈中移除错误码和ISR号 */
+    pop %eax
+    pop %ebx
+    pop %ecx
+    pop %edx
+    pop %esi
+    pop %edi
+    pop %ebp
+    add $8, %esp
     iret            /* pop cs, eip, eflags, ss, esp */
 
 /* Exception */
@@ -127,7 +141,7 @@ isr 45
 isr 46
 isr 47
 
-isr 48 # Padding
+; isr 48 # Padding
 isr 49 # Schedule
 
 # isr 73 # Syscall

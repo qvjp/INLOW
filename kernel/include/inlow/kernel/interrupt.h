@@ -131,10 +131,10 @@ extern "C"{
     extern void isr_45(void);      /* FPU / Coprocessor / Inter-processor */
     extern void isr_46(void);      /* Primary ATA Hard Disk */
     extern void isr_47(void);      /* Secondary ATA Hard Disk */
-
-    extern void isr_48(void);      /* Padding */
-    extern void isr_49(void);      /* Schedule */
     extern void syscallHandler(void); /* Syscall */
+
+    // extern void isr_48(void);      /* Padding */
+    extern void isr_49(void);      /* Schedule */
 
 }
 /**
@@ -143,9 +143,28 @@ extern "C"{
 struct regs
 {
     /* 为不混淆视听，遂将几个段寄存器删掉，用时再说 */
-    uint32_t edi, esi, ebp, esp, ebx, edx, ecx, eax;  /* "pasha" 将数据压如这几个寄存器 */
-    uint32_t int_no, err_code;                        /* 我们"push $\no"就是将错误吗push到int_no中 */
-    uint32_t eip, cs, eflags, useresp, ss;            /* CPU自动压入 */
+    // uint32_t edi, esi, ebp, esp, ebx, edx, ecx, eax;  /* "pasha" 将数据压如这几个寄存器 */
+    // uint32_t int_no, err_code;                        /* 我们"push $\no"就是将错误吗push到int_no中 */
+    // uint32_t eip, cs, eflags, useresp, ss;            /* CPU自动压入 */
+    uint32_t eax;
+    uint32_t ebx;
+    uint32_t ecx;
+    uint32_t edx;
+    uint32_t esi;
+    uint32_t edi;
+    uint32_t ebp;
+
+    uint32_t int_no;
+    uint32_t err_code;
+
+    // These are pushed by the cpu when an interrupt happens.
+    uint32_t eip;
+    uint32_t cs;
+    uint32_t eflags;
+
+    // These are only valid if the interrupt came from Ring 3
+    uint32_t useresp;
+    uint32_t ss;
 };
 
 /* 将IRQs设置到IDT中 */

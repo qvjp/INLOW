@@ -28,10 +28,10 @@
 #ifndef INLOW_SYSCALL_H__
 #define INLOW_SYSCALL_H__
 
-#define SYSCALL_PAD 0
-#define SYSCALL_EXIT 1
+// #define SYSCALL_PAD 0
+#define SYSCALL_EXIT 0
 
-#define NUM_SYSCALLS 2
+#define NUM_SYSCALLS 1
 
 
 #endif /* INLOW_SYSCALL_H__ */
