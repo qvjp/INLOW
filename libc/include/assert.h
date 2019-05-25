@@ -31,17 +31,16 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
 #undef assert
 
 #ifdef NDEBUG
-#define assert(ignore) ((void) 0)
+#  define assert(ignore) ((void) 0)
 #else
-
-__dead void __assert(
-    const char*, const char*, unsigned int, const char*);
-
-#define assert(e) ((e) ? (void) 0 : __assert(#e, __FILE__, __LINE__, __func__))
-
+__dead void __assertionFailure(const char*, const char*, unsigned int,
+        const char*);
+#  define assert(assertion) ((assertion) ? (void) 0 : \
+        __assertionFailure(#assertion, __FILE__, __LINE__, __func__))
 #endif
 
 #ifdef __cplusplus

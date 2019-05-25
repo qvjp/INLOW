@@ -38,13 +38,13 @@ public:
     Process();
     void exit(int status);
 private:
-    AddressSpace* addressSpace;       /* 每个进程都有自己独立的地址空间 */
     struct regs* interruptContext;
     Process* prev;
     Process* next;
     void* kstack;                     /* 内核栈 */
     void* stack;                      /* 用户栈 */
 public:
+    AddressSpace* addressSpace;       /* 每个进程都有自己独立的地址空间 */
     FileDescription* fd[20];
 public:
     static void initialize();

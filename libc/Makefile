@@ -20,6 +20,8 @@ COMMON_OBJ := \
 	cxx/purevirtual \
 	errno/errno \
 	stdio/vcbprintf \
+	stdlib/free \
+	stdlib/malloc \
 	string/memcmp \
 	string/memcpy \
 	string/memmove \
@@ -32,12 +34,11 @@ CRT_OBJ := \
 	$(BUILD)/arch/i686/crtn.o
 
 LIBK_OBJ := \
-	$(COMMON_OBJ) \
-	stdlib/free \
-	stdlib/malloc
+	$(COMMON_OBJ)
 
 LIBC_OBJ := \
 	$(COMMON_OBJ) \
+	assert/assert \
 	stdio/fgetc_unlocked \
 	stdio/fgetc \
 	stdio/fgets_unlocked \
@@ -66,6 +67,8 @@ LIBC_OBJ := \
 	stdio/vfprintf \
 	stdlib/_Exit \
 	stdlib/exit \
+	sys/mman/mmap \
+	sys/mman/munmap \
 	unistd/_exit \
 	unistd/read \
 	unistd/write

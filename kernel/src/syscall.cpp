@@ -12,6 +12,8 @@ static const void* syscallList[NUM_SYSCALLS] =
     (void*) Syscall::exit,
     (void*) Syscall::write,
     (void*) Syscall::read,
+    (void*) Syscall::mmap,
+    (void*) Syscall::munmap,
 };
 
 /**

@@ -31,10 +31,11 @@
 /**
  * 断言，调用此函数打印诊断信息并终止执行
  */
-extern "C" void __assert(const char* e, const char* file, unsigned int line, const char* function)
-{
-    Print::warnTerminal();
-    Print::printf("Assertion failed: (%s), function %s, file %s, line %u.\n", e, function, file, line);
-    while (1)
-        __asm__ __volatile("cli; hlt");
+
+extern "C" void __assertionFailure(const char* assertion, const char* file,
+        unsigned int line, const char* func) {
+    Print::printf("Assertion failed: '%s' at function %s (%s:%u)\n",
+            assertion, func, file, line);
+    // Halt the kernel.
+    while (true) asm volatile("cli; hlt");
 }

@@ -31,7 +31,12 @@
 #include <inlow/kernel/physicalmemory.h> /* pushPageFrame popPageFrame */           
 #include <inlow/kernel/print.h>          /* Print::printf() */
 #include <stdlib.h>                      /* malloc() */
-#include <string.h>                      /* memset() */
+#include <errno.h>
+#include <string.h>
+#include <inlow/mman.h>
+#include <inlow/kernel/process.h>
+#include <inlow/kernel/syscall.h>
+
 
 
 AddressSpace AddressSpace::_kernelSpace;
@@ -460,6 +465,41 @@ void AddressSpace::unMapRange(inlow_vir_addr_t firstVirtualAddress, size_t pages
         firstVirtualAddress += 0x1000;
     }
 }
+
+static void* mmapImplementation(void* /*addr*/, size_t size, int /*protection*/,
+        int flags, int /*fd*/, off_t /*offset*/) {
+    if (size == 0 || !(flags & MAP_PRIVATE)) {
+        errno = EINVAL;
+        return MAP_FAILED;
+    }
+
+    if (flags & MAP_ANONYMOUS) {
+        AddressSpace* addressSpace = Process::current->addressSpace;
+        return (void*) addressSpace->allocate(size / 0x1000);
+    }
+
+    //TODO: Implement other flags than MAP_ANONYMOUS
+    errno = ENOTSUP;
+    return MAP_FAILED;
+}
+
+void* Syscall::mmap(__mmapRequest* request) {
+    return mmapImplementation(request->_addr, request->_size, request->_protection,
+            request->_flags, request->_fd, request->_offset);
+}
+
+int Syscall::munmap(void* addr, size_t size) {
+    if (size == 0 || (inlow_vir_addr_t) addr & 0xFFF) {
+        errno = EINVAL;
+        return -1;
+    }
+
+    AddressSpace* addressSpace = Process::current->addressSpace;
+    //TODO: The userspace process could unmap kernel pages!
+    addressSpace->free((inlow_vir_addr_t) addr, size / 0x1000);
+    return 0;
+}
+
 
 /**
  * 下边两个函数供libk调用

@@ -30,12 +30,16 @@
 
 #include <inlow/syscall.h>
 
+struct __mmapRequest;
+
 namespace Syscall
 {
     // void pad(void);
-    __attribute__((__noreturn__)) void exit(int status);
+    __dead void exit(int status);
     ssize_t read(int fd, void* buffer, size_t size);
     ssize_t write(int fd, const void* buffer, size_t size);
+    void* mmap(__mmapRequest* request);
+    int munmap(void* addr, size_t size);
     void badSyscall();
 }
 

@@ -28,15 +28,18 @@
 
 #include <stdio.h>
 #include <unistd.h>
+#include <stdlib.h>
 
 int main(int argc, char* argv[])
 {
     (void) argc;
     (void) argv;
     puts("Hello World from userspace!\n");
-    char buffer[10];
-    buffer[9] = '\0';
-    read(0, buffer, 9);
-    printf("\nYou wrote: %s\n", buffer);
+    char* buffer = malloc(81);
+
+    fgets(buffer, 81, stdin);
+    printf("You wrote: %s\n", buffer);
+
+    free(buffer);
     return 0;
 }
