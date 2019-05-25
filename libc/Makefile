@@ -16,6 +16,8 @@ LIBK_FLAGS += -D__is_inlow_libk
 
 
 COMMON_OBJ := \
+	cxx/new \
+	errno/errno \
 	string/memcmp \
 	string/memcpy \
 	string/memmove \
@@ -71,6 +73,10 @@ $(BUILD)/%.o: src/%.c
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(LIBC_FLAGS) -c -o $@ $^
 
+$(BUILD)/%.o: src/%.cpp
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) $(LIBC_FLAGS) -c -o $@ $^
+
 $(BUILD)/%.o: src/%.s
 	@mkdir -p $(dir $@)
 	$(CC) $(ASFLAGS) $(CPPFLAGS) $(LIBC_FLAGS) -c -o $@ $^
@@ -78,6 +84,10 @@ $(BUILD)/%.o: src/%.s
 $(BUILD)/%.libk.o: src/%.c
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(LIBK_FLAGS) -c -o $@ $^
+
+$(BUILD)/%.libk.o: src/%.cpp
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) $(LIBK_FLAGS) -c -o $@ $^
 
 clean:
 	rm -rf $(BUILD)
