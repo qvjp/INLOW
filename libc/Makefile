@@ -9,7 +9,7 @@ BUILD = $(BUILD_DIR)/libc
 ARFLAGS := -rcs
 CFLAGS ?= -O0 -g
 CFLAGS += --sysroot=$(SYSROOT) -std=gnu11 -ffreestanding -Wall -Wextra
-CPPFLAGS := -I include -I $(SYSROOT)/usr/include
+CPPFLAGS := -I include -I $(SYSROOT)/usr/include -D_ALL_SOURCE
 
 LIBC_FLAGS += -D__is_inlow_libc
 LIBK_FLAGS += -D__is_inlow_libk
@@ -18,6 +18,7 @@ LIBK_FLAGS += -D__is_inlow_libk
 COMMON_OBJ := \
 	cxx/new \
 	errno/errno \
+	stdio/vcbprintf \
 	string/memcmp \
 	string/memcpy \
 	string/memmove \
@@ -36,6 +37,22 @@ LIBK_OBJ := \
 
 LIBC_OBJ := \
 	$(COMMON_OBJ) \
+	stdio/flockfile \
+	stdio/fprintf \
+	stdio/fputc_unlocked \
+	stdio/fputc \
+	stdio/fputs_unlocked \
+	stdio/fputs \
+	stdio/funlockfile \
+	stdio/printf \
+	stdio/putc_unlocked \
+	stdio/putc \
+	stdio/putchar_unlocked \
+	stdio/putchar \
+	stdio/puts \
+	stdio/stdout \
+	stdio/vfprintf_unlocked \
+	stdio/vfprintf \
 	stdlib/_Exit \
 	stdlib/exit \
 	unistd/_exit \

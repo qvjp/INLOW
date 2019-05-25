@@ -26,14 +26,12 @@
  * 测试模块，直接退出，状态码0
  */
 
-#include <string.h>
-#include <unistd.H>
+#include <stdio.h>
 
 int main(int argc, char* argv[])
 {
     (void) argc;
     (void) argv;
-    const char* hello = "Hello World from userspace!\n";
-    write(1, hello, strlen(hello));
+    puts("Hello World from userspace!\n");
     return 0;
 }

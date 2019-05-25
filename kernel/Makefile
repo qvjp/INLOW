@@ -32,6 +32,7 @@ CXXFLAGS ?= -O0 -g
 CXXFLAGS += --sysroot=$(SYSROOT) -std=gnu++14 -ffreestanding -fno-exceptions -Wall -Wextra -fno-rtti
 # CPPFLAGS中CPP是C PreProcessor的缩写
 CPPFLAGS += -I include -I $(SYSROOT)/usr/include
+CPPFLAGS += -D__is_inlow_kernel -D_INLOW_SOURCE
 LDFLAGS ?= --sysroot=$(SYSROOT) -T src/linker.ld -ffreestanding -nostdlib
 BUILD = $(BUILD_DIR)/kernel
 
