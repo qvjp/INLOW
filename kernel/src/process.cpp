@@ -210,5 +210,5 @@ void Process::exit(int status)
     if (this == firstProcess)
         firstProcess = next;
 
-    Print::printf("Process exited with status: %d\n", status);
+    Print::printf("Process exited with status: %u\n", status);
 }

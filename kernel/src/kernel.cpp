@@ -34,6 +34,7 @@
 #include <inlow/kernel/physicalmemory.h>
 #include <inlow/kernel/print.h>         /* printf() */
 #include <inlow/kernel/process.h>
+#include <inlow/kernel/ps2.h>
 #include <stdlib.h>                     /* malloc() free() */
 #include <string.h>                     /* memcpy() */
 
@@ -83,6 +84,9 @@ extern "C" void kernel_main(uint32_t magic, inlow_phy_addr_t multibootAddress)
     multiboot_info* multiboot = (multiboot_info*)kernelSpace->map(multibootAddress, 0x3);
     PhysicalMemory::initialize(multiboot);
     Print::printf("Physical Memory Initialized\n");
+
+    PS2::initialize();
+    Print::printf("PS/2 Controller Initialized\n");
 
     Process::initialize();
     Print::printf("Processes Initialized\n");

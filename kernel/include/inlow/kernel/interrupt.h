@@ -172,6 +172,7 @@ void irqs_install();
 
 namespace Interrupt
 {
+    extern void (*irqHandlers[])(int);
     void initPic();
     void enable();
 }

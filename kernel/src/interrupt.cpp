@@ -112,6 +112,8 @@ void isr_install_handler(int isr, void (*handler)(struct regs *r))
     isr_routines[isr] = handler;
 }
 
+void (*Interrupt::irqHandlers[16])(int) = {0};
+
 void isr_uninstall_handler(int isr)
 {
     isr_routines[isr] = 0;
@@ -143,16 +145,21 @@ extern "C" struct regs* interrupt_handler(struct regs *r)
     /* 设备IRQ */
     if (r->int_no <= 47 && r->int_no >= 32)
     {
+        int irq = r->int_no - 32;
+        
         /**
          * 定义一个空函数指针用来放具体的IRQ处理程序
          */
         void (*handler)(struct regs *r);
-        if (r->int_no != 32)
-            Print::printf("IRQ %d occurred!\n", r->int_no - 32);
+        // if (irq != 0)
+        //     Print::printf("IRQ %d occurred!\n", irq);
         /* 当时钟中断发生时，进行进程调度 */
-        else if(r->int_no == 32)
+        if(irq == 0)
         {
             newContext = Process::schedule(r);
+        }
+        if (Interrupt::irqHandlers[irq]) {
+            Interrupt::irqHandlers[irq](irq);
         }
         
         handler = isr_routines[r->int_no];
@@ -165,7 +172,7 @@ extern "C" struct regs* interrupt_handler(struct regs *r)
          * 如果IDT入口号大于40(IRQ8-15)，也就是说这个IRQ来自从PIC，我们需要给从PIC的命令端口发送一个EOI 
          * 而如果IRQ来自主PIC，我们只需要向主PIC发送EOI即可
          */
-        if (r->int_no >= 40)
+        if (irq >= 8)
         {
             Hardwarecommunication::outportb(PIC2_COMMAND, PIC_EOI);
         }

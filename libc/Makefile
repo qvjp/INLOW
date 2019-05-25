@@ -17,6 +17,7 @@ LIBK_FLAGS += -D__is_inlow_libk
 
 COMMON_OBJ := \
 	cxx/new \
+	cxx/purevirtual \
 	errno/errno \
 	stdio/vcbprintf \
 	string/memcmp \

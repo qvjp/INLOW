@@ -51,10 +51,13 @@ OBJ := \
 	idt.o \
 	interrupt.o \
 	kernel.o \
+	keyboard.o \
 	pic.o \
 	physicalmemory.o \
 	print.o \
 	process.o \
+	ps2.o \
+	ps2keyboard.o \
 	syscall.o \
 	terminal.o \
 	vnode.o

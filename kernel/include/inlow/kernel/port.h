@@ -43,6 +43,14 @@ namespace Hardwarecommunication
                                :
                                : "a"(value), "Nd"(port));
     }
+
+    static inline uint8_t inportb(uint16_t port) {
+        uint8_t result;
+        __asm__ __volatile__ ("inb %1, %0"
+                               : "=a"(result)
+                               : "Nd"(port));
+        return result;
+    }
 }
 
 #endif /* KERNEL_PORT_H__ */
