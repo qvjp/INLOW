@@ -8,12 +8,40 @@ static int cursorPosY = 0;
 
 static void printCharacter(char c);
 
+Terminal::Terminal() {
+    readIndex = 0;
+    writeIndex = 0;
+}
+
+void Terminal::writeToCircularBuffer(char c) {
+    while ((writeIndex + 1) % 4096 == readIndex);
+    circularBuffer[writeIndex] = c;
+    writeIndex = (writeIndex + 1) % 4096;
+}
+
+char Terminal::readFromCircularBuffer() {
+    while (readIndex == writeIndex);
+    char result = circularBuffer[readIndex];
+    readIndex = (readIndex + 1) % 4096;
+    return result;
+}
+
 void Terminal::onKeyboardEvent(int key) {
     char c = Keyboard::getCharFromKey(key);
 
     if (c) {
-        write(&c, 1);
+        printCharacter(c);
+        writeToCircularBuffer(c);
     }
+}
+
+ssize_t Terminal::read(void* buffer, size_t size) {
+    char* buf = (char*) buffer;
+    for (size_t i = 0; i < size; i++) {
+        buf[i] = readFromCircularBuffer();
+    }
+
+    return (ssize_t) size;
 }
 
 ssize_t Terminal::write(const void* buffer, size_t size) {
@@ -61,11 +89,11 @@ void Terminal::warnTerminal()
 {
     // FontColor = ; /* 红底白字 */
     for (size_t i = 0; i < 25; i++)
-    for (size_t j = 0; j < 80; j++)
-    {
-        // video[2 * (80 * i + j)] = ' ';
-        video[2 * (80 * i + j) + 1] = 0xCF;
-    }
+        for (size_t j = 0; j < 80; j++)
+        {
+            // video[2 * (80 * i + j)] = ' ';
+            video[2 * (80 * i + j) + 1] = 0xCF;
+        }
 }
 
 /**

@@ -38,6 +38,10 @@ LIBK_OBJ := \
 
 LIBC_OBJ := \
 	$(COMMON_OBJ) \
+	stdio/fgetc_unlocked \
+	stdio/fgetc \
+	stdio/fgets_unlocked \
+	stdio/fgets \
 	stdio/flockfile \
 	stdio/fprintf \
 	stdio/fputc_unlocked \
@@ -45,18 +49,25 @@ LIBC_OBJ := \
 	stdio/fputs_unlocked \
 	stdio/fputs \
 	stdio/funlockfile \
+	stdio/getc_unlocked \
+	stdio/getc \
+	stdio/getchar_unlocked \
+	stdio/getchar \
 	stdio/printf \
 	stdio/putc_unlocked \
 	stdio/putc \
 	stdio/putchar_unlocked \
 	stdio/putchar \
 	stdio/puts \
+	stdio/stderr \
+	stdio/stdin \
 	stdio/stdout \
 	stdio/vfprintf_unlocked \
 	stdio/vfprintf \
 	stdlib/_Exit \
 	stdlib/exit \
 	unistd/_exit \
+	unistd/read \
 	unistd/write
 
 LIBC_OBJ += \

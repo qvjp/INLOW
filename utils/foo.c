@@ -27,11 +27,16 @@
  */
 
 #include <stdio.h>
+#include <unistd.h>
 
 int main(int argc, char* argv[])
 {
     (void) argc;
     (void) argv;
     puts("Hello World from userspace!\n");
+    char buffer[10];
+    buffer[9] = '\0';
+    read(0, buffer, 9);
+    printf("\nYou wrote: %s\n", buffer);
     return 0;
 }
