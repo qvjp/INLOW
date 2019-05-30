@@ -58,13 +58,8 @@ Process::Process()
  */
 void Process::initialize()
 {
-    idleProcess = (Process*)malloc(sizeof(Process));
-    idleProcess->addressSpace = kernelSpace;
-    idleProcess->prev = 0;
-    idleProcess->next = 0;
-    idleProcess->kstack = 0;
-    idleProcess->stack = 0;
-    idleProcess->interruptContext = (struct regs*)malloc(sizeof(struct regs));
+    idleProcess = new Process();
+    idleProcess->interruptContext = new regs;
     current = idleProcess;
     firstProcess = nullptr;
 }
@@ -153,9 +148,7 @@ struct regs* Process::schedule(struct regs* context)
  */
 Process* Process::startProcess(void* entry, AddressSpace* addressSpace)
 {
-    Process* process = (Process*)malloc(sizeof(Process));
-    process->prev = 0;
-    process->next = 0;
+    Process* process = new Process();
     /**
      * 分配两个栈，内核栈用来保存上下文信息
      * 用户栈处理其他
