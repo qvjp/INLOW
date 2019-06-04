@@ -83,21 +83,26 @@ extern "C" void kernel_main(uint32_t magic, inlow_phy_addr_t multibootAddress)
     }
 
     Print::initTerminal();
-    Print::printf("HELLO WORLD!\n");
+    Print::printf("This is %s Edition\n----------\n", INLOW_VERSION);
 
+    Print::printf("AddressSpace initializing...\n");
     AddressSpace::initialize();
-    Print::printf("AddressSpace Initialized\n");
+    Print::printf("AddressSpace Initialized\n----------\n");
+
 
     multiboot_info* multiboot = (multiboot_info*)kernelSpace->map(multibootAddress, 0x3);
+    Print::printf("Physical Memory initializing...\n");
     PhysicalMemory::initialize(multiboot);
-    Print::printf("Physical Memory Initialized\n");
+    Print::printf("Physical Memory Initialized\n----------\n");
 
+    Print::printf("PS/2 Controller initializing...\n");
     PS2::initialize();
-    Print::printf("PS/2 Controller Initialized\n");
+    Print::printf("PS/2 Controller Initialized\n----------\n");
 
+    Print::printf("Initrd loading...");
     DirectoryVnode* rootDir = loadInitrd(multiboot);
     FileDescription* rootFd = new FileDescription(rootDir);
-    Print::printf("Initrd loaded\n");
+    Print::printf("Initrd loaded\n----------\n");
 
     Process::initialize(rootFd);
 
@@ -106,11 +111,14 @@ extern "C" void kernel_main(uint32_t magic, inlow_phy_addr_t multibootAddress)
         Process::loadELF((inlow_vir_addr_t) program->data);
     }
     kernelSpace->unMap((inlow_vir_addr_t)multiboot);
-    Print::printf("Processes Initialized\n");
+    Print::printf("Processes Initialized\n----------\n");
 
     Interrupt::initPic();
     Interrupt::enable();
-    Print::printf("Interrrupt Initialized\n");
+    Print::printf("Interrrupt Initialized\n\n");
+    Print::printf("---------------------------------\n");
+    Print::printf("||||||||KERNEL INITIALIZED|||||||\n");
+    Print::printf("---------------------------------\n\n");
 
     while(1)
     {

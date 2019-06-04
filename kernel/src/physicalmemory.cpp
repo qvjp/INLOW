@@ -98,7 +98,7 @@ void PhysicalMemory::initialize(multiboot_info* multiboot)
         mmap += mmapEntry->size + 4;
     }
     kernelSpace->unMap(virtualAddress);
-    /* Print::printf("We have %d free page frames\n", stackUsed); */
+    Print::printf("Physical Memory: free page frames %u (%u MB)\n", stackUsed, stackUsed * 4 / 1024);
 }
 
 /**

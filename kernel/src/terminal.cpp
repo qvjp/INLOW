@@ -1,10 +1,12 @@
 #include <inlow/kernel/terminal.h>
+#include <stdint.h>
 
 Terminal terminal;
 
 static char* video = (char*) 0xC0000000;
 static int cursorPosX = 0;
 static int cursorPosY = 0;
+static uint8_t FontColor = 0x83;
 
 static void printCharacter(char c);
 
@@ -65,9 +67,10 @@ static void printCharacter(char c) {
                 video[i] = video[i + 2 * 80];
             }
 
-            // Clean the last line
-            for (size_t i = 2 * 24 * 80; i < 2 * 25 * 80; i++) {
-                video[i] = 0;
+            // Clean the last line, with backgroud color.
+            for (size_t i = 2 * 24 * 80; i < 2 * 25 * 80; i+=2) {
+                video[i] = ' ';
+                video[i+1] = FontColor;
             }
 
             cursorPosY = 24;
@@ -77,7 +80,7 @@ static void printCharacter(char c) {
     }
 
     video[cursorPosY * 2 * 80 + 2 * cursorPosX] = c;
-    video[cursorPosY * 2 * 80 + 2 * cursorPosX + 1] = 0x83;
+    video[cursorPosY * 2 * 80 + 2 * cursorPosX + 1] = FontColor;
 
     cursorPosX++;
 }
@@ -87,12 +90,13 @@ static void printCharacter(char c) {
  */
 void Terminal::warnTerminal()
 {
+    FontColor = 0xCF;
     // FontColor = ; /* 红底白字 */
     for (size_t i = 0; i < 25; i++)
         for (size_t j = 0; j < 80; j++)
         {
             // video[2 * (80 * i + j)] = ' ';
-            video[2 * (80 * i + j) + 1] = 0xCF;
+            video[2 * (80 * i + j) + 1] = FontColor;
         }
 }
 
@@ -107,6 +111,6 @@ void Terminal::initTerminal()
         for (size_t j = 0; j < 80; j++)
         {
             video[2 * (80 * i + j)] = ' ';
-            video[2 * (80 * i + j) + 1] = 0x83;
+            video[2 * (80 * i + j) + 1] = FontColor;
         }
 }

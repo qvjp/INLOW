@@ -73,7 +73,7 @@ utils:
 	$(MAKE) -C utils
 
 qemu: $(ISO)
-	qemu-system-i386 -cdrom $^
+	qemu-system-i386 -m 64 -cdrom $^
 
 # 此模式Esc + 2再输入quit退出
 qemu-curses: $(ISO)

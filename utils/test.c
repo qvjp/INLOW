@@ -28,20 +28,89 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-int main(int argc, char* argv[]) {
-    (void) argc; (void) argv;
-    
-    FILE* file = fopen("hello", "r");
-    char* buffer = malloc(81);
+int main(int argc, char *argv[])
+{
+    (void)argc;
+    (void)argv;
 
-    printf("Read from file:\n");
-    while (fgets(buffer, 6, file)) {
+    FILE *file = fopen("hello", "r");
+    char *buffer = malloc(81);
+
+    printf("Read from file: ");
+    while (fgets(buffer, 6, file))
+    {
         printf("%s", buffer);
     }
 
-    fgets(buffer, 81, stdin);
-    printf("You wrote: %s\n", buffer);
+    printf("\n");
 
+    // fgets(buffer, 81, stdin);
+    // printf("You wrote: %s\n", buffer);
+
+    char *a = malloc(10);
+    char *b = malloc(10);
+    char *c = malloc(10);
+    int num1 = 0;
+    int num2 = 0;
+    char op = 0;
+
+    while (1)
+    {
+        for (int i = 0; i < 10; i++)
+        {
+            a[i] = 0;
+            b[i] = 0;
+            c[i] = 0;
+        }
+        // printf("input op: \n");
+        // fgets(c, 1, stdin);
+
+        printf("input formula: ");
+        fgets(c, 10, stdin);
+
+        for (int i = 0, j = 0, next = 0; i < 10; i++)
+        {
+            if (next == 0 && c[i] != '+' && c[i] != '-' && c[i] != '*' && c[i] != '/')
+            {
+                a[i] = c[i];
+            }
+            else
+            {
+                next = 1;
+                if (!(c[i] == '+' || c[i] == '-' || c[i] == '*' || c[i] == '/'))
+                {
+                    b[j++] = c[i];
+                }
+                else
+                {
+                    op = c[i];
+                }
+                
+            }
+        }
+
+        num1 = strtol(a, &buffer, 10);
+        num2 = strtol(b, &buffer, 10);
+
+        switch(op)
+        {
+        case '+' :
+            printf("%u %c %u = %u", num1, op, num2, num1 + num2);
+            break;
+        case '-' :
+            printf("%u %c %u = %u", num1, op, num2, num1 - num2);
+            break;
+        case '*' :
+            printf("%u %c %u = %u", num1, op, num2, num1 * num2);
+            break;
+        case '/' :
+            printf("%u %c %u = %u", num1, op, num2, num1 / num2);
+            break;
+        default:
+            printf("input error");
+        }
+        printf("\n");
+    }
     free(buffer);
-    return 42;
+    return 0;
 }

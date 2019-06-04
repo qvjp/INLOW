@@ -91,6 +91,7 @@ void PS2::initialize() {
 
     // Scan for connected devices
     if (port1Exists) {
+        Print::printf("Scanning for connected devices...\n");
         while (Hardwarecommunication::inportb(PS2_STATUS_PORT) & 2);
         Hardwarecommunication::outportb(PS2_DATA_PORT, DEVICE_RESET);
         if (readDataPort() != 0xFA) goto checkPort2;
@@ -108,6 +109,7 @@ void PS2::initialize() {
             id = Hardwarecommunication::inportb(PS2_DATA_PORT);
             if (id == 0x41 || id == 0xC1 || id == 0x83) {
                 // The device identified itself as a keyboard
+                Print::printf("Find the PS2 Keyboard\n");
                 PS2Keyboard* keyboard = new PS2Keyboard();
                 keyboard->listener = &terminal;
 

@@ -33,6 +33,8 @@
 /* Multiboot 兼容的引导程序传递来的魔数。 */
 #define MULTIBOOT_BOOTLOADER_MAGIC 0x2BADB002
 
+#define INLOW_VERSION "0.0.1 Graduation"
+
 typedef uintptr_t inlow_phy_addr_t;
 typedef uintptr_t inlow_vir_addr_t;
 

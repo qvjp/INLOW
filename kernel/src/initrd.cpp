@@ -38,7 +38,7 @@ DirectoryVnode* Initrd::loadInitrd(inlow_vir_addr_t initrd) {
             FileVnode* file = new FileVnode(header + 1, size);
             root->addChildNode(strdup(header->name), file);
 
-            Print::printf("File: /%s, size = %zu\n", header->name, size);
+            Print::printf("File: /%s, size = %zu bytes\n", header->name, size);
         }
 
         header += 1 + ALIGN_UP(size, 512) / 512;

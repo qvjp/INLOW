@@ -85,11 +85,14 @@ void AddressSpace::initialize()
     kernelSpace->pageDir = (inlow_phy_addr_t) &kernelPageDirectory;
     inlow_vir_addr_t p = (inlow_vir_addr_t) &bootstrapBegin;
 
+    Print::printf("Unidentiry mapping AddressSpace ");
+    Print::printf("%u -> ", p);
     while (p < (inlow_vir_addr_t) &bootstrapEnd)
     {
         kernelSpace->unMap(p);
         p += 0x1000;
     }
+    Print::printf("%u\n", p);
     /**
      * 可以将下边这个映射干掉是因为第一个页表对应的内存是已知的最高4M。
      */

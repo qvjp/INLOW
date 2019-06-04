@@ -19,6 +19,7 @@ static size_t callback(void*, const char* s, size_t nBytes) {
 void Print::initTerminal()
 {
     Terminal::initTerminal();
+    Print::printf("Terminal Initialized...(grey & cyan)\n");
 }
 void Print::warnTerminal()
 {
