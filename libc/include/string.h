@@ -48,6 +48,9 @@ size_t strcspn(const char*, const char*);
 char* strcpy(char* __restrict, const char* __restrict);
 size_t strlen(const char*);
 int strncmp(const char*, const char*, size_t);
+#if __USE_INLOW || __USE_POSIX
+char* strdup(const char*);
+#endif
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

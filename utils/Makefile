@@ -31,9 +31,7 @@ CFLAGS += -Wall -Wextra
 
 BUILD = $(BUILD_DIR)/utils
 
-PROGRAMS = \
-	bar \
-	foo
+PROGRAMS = test
 
 all: $(addprefix $(BUILD)/, $(PROGRAMS))
 

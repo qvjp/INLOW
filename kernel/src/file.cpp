@@ -1,9 +1,10 @@
 #include <string.h>
 #include <inlow/kernel/file.h>
 
-FileVnode::FileVnode() {
-    data = "Hello World! I'm Foolish boy.";
-    fileSize = strlen(data);
+FileVnode::FileVnode(const void* data, size_t size) {
+    this->data = new char[size];
+    memcpy(this->data, data, size);
+    fileSize = size;
 }
 
 bool FileVnode::isSeekable() {

@@ -16,12 +16,15 @@ LIBK_FLAGS += -D__is_inlow_libk
 
 
 COMMON_OBJ := \
+	ctype/isspace \
 	cxx/new \
 	cxx/purevirtual \
 	errno/errno \
 	stdio/vcbprintf \
 	stdlib/free \
 	stdlib/malloc \
+	stdlib/strtol \
+	stdlib/strtoul \
 	string/memcmp \
 	string/memcpy \
 	string/memmove \
@@ -29,6 +32,7 @@ COMMON_OBJ := \
 	string/strlen \
 	string/strcmp \
 	string/strcspn \
+	string/strdup \
 	string/strlen \
 	string/strncmp
 

@@ -45,24 +45,29 @@ strip-debug:
 	i686-inlow-objcopy --only-keep-debug $(BUILD_DIR)/kernel/kernel.elf $(BUILD_DIR)/kernel.sym
 	i686-inlow-objcopy --strip-debug $(BUILD_DIR)/kernel/kernel.elf
 
-$(ISO): $(BUILD_DIR)/kernel/kernel.elf
+$(ISO): $(BUILD_DIR)/kernel/kernel.elf $(BUILD_DIR)/initrd/initrd.tar
 	mkdir iso
 	mkdir iso/boot
 	mkdir iso/boot/grub
 	cp $(BUILD_DIR)/kernel/kernel.elf iso/boot/kernel.elf
-	cp $(BUILD_DIR)/utils/bar iso/
-	cp $(BUILD_DIR)/utils/foo iso/
+	cp $(BUILD_DIR)/initrd/initrd.tar iso/boot/initrd.tar
 	echo 'set timeout=0'                   >  iso/boot/grub/grub.cfg
 	echo 'set default=0'                   >> iso/boot/grub/grub.cfg
 	echo ''                                >> iso/boot/grub/grub.cfg
 	echo 'menuentry "INLOW" {'             >> iso/boot/grub/grub.cfg
 	echo '    multiboot /boot/kernel.elf'  >> iso/boot/grub/grub.cfg
-	echo '    module /bar'                 >> iso/boot/grub/grub.cfg
-	echo '    module /foo'                 >> iso/boot/grub/grub.cfg
+	echo '    module /boot/initrd.tar'     >> iso/boot/grub/grub.cfg
 	echo '    boot'                        >> iso/boot/grub/grub.cfg
 	echo '}'                               >> iso/boot/grub/grub.cfg
 	grub-mkrescue --output=$(ISO) iso
 	rm -rf iso
+
+$(BUILD_DIR)/initrd/initrd.tar: $(BUILD_DIR)/utils/test
+	@mkdir -p $(BUILD_DIR)/initrd
+	echo Hello World. I\'m file hello. > $(BUILD_DIR)/initrd/hello
+	cp $(BUILD_DIR)/utils/test $(BUILD_DIR)/initrd
+	cd $(BUILD_DIR)/initrd && tar cvf initrd.tar --format=ustar hello test
+
 
 utils:
 	$(MAKE) -C utils

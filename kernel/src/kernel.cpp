@@ -31,6 +31,7 @@
 #include <inlow/kernel/addressspace.h>  /**/
 #include <inlow/kernel/directory.h>
 #include <inlow/kernel/file.h>
+#include <inlow/kernel/initrd.h>
 #include <inlow/kernel/inlow.h>         /* MULTIBOOT_BOOTLOADER_MAGIC */
 #include <inlow/kernel/interrupt.h>     /* Interrupt::initPic() Interrupt::enable() */
 #include <inlow/kernel/physicalmemory.h>
@@ -47,8 +48,9 @@
  * 然后通过mod_start和mod_end解析每一个模块，并将模块的首地址
  * 传给ELF加载函数loadELF()。最终释放过程中使用的虚拟地址。
  */
-static void startProcesses(multiboot_info* multiboot)
+static DirectoryVnode* loadInitrd(multiboot_info* multiboot)
 {
+    DirectoryVnode* root = nullptr;
     inlow_phy_addr_t modulesAligned = multiboot->mods_addr & ~0xFFF;
     ptrdiff_t offset = multiboot->mods_addr - modulesAligned;
 
@@ -61,11 +63,14 @@ static void startProcesses(multiboot_info* multiboot)
     {
         /* 按页对齐后再分配内存 */
         size_t pages_number = ALIGN_UP(modules[i].mod_end - modules[i].mod_start, 0x1000) / 0x1000;
-        inlow_vir_addr_t elf = kernelSpace->mapRange(modules[i].mod_start, pages_number, PAGE_PRESENT);
-        Process::loadELF(elf);
-        kernelSpace->unMapRange(elf, pages_number);
+        inlow_vir_addr_t initrd = kernelSpace->mapRange(modules[i].mod_start, pages_number, PAGE_PRESENT);
+        root = Initrd::loadInitrd(initrd);
+        kernelSpace->unMapRange(initrd, pages_number);
+
+        if (root->childCount) break;
     }
     kernelSpace->unMap((inlow_vir_addr_t) modulesPage);
+    return root;
 }
 
 extern "C" void kernel_main(uint32_t magic, inlow_phy_addr_t multibootAddress)
@@ -90,17 +95,18 @@ extern "C" void kernel_main(uint32_t magic, inlow_phy_addr_t multibootAddress)
     PS2::initialize();
     Print::printf("PS/2 Controller Initialized\n");
 
-    // Create a root directory with a file.
-    DirectoryVnode* rootDir = new DirectoryVnode();
-    rootDir->addChildNode("hello", new FileVnode());
+    DirectoryVnode* rootDir = loadInitrd(multiboot);
     FileDescription* rootFd = new FileDescription(rootDir);
+    Print::printf("Initrd loaded\n");
 
     Process::initialize(rootFd);
 
-    Print::printf("Processes Initialized\n");
-
-    startProcesses(multiboot);
+    FileVnode* program = (FileVnode*) rootDir->openat("test", 0, 0);
+    if (program) {
+        Process::loadELF((inlow_vir_addr_t) program->data);
+    }
     kernelSpace->unMap((inlow_vir_addr_t)multiboot);
+    Print::printf("Processes Initialized\n");
 
     Interrupt::initPic();
     Interrupt::enable();
