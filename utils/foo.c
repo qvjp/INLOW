@@ -34,12 +34,12 @@ int main(int argc, char* argv[])
 {
     (void) argc;
     (void) argv;
-    puts("Hello World from userspace!\n");
-    char* buffer = malloc(81);
+    // puts("Hello World from userspace foo!\n");
+    // char* buffer = malloc(81);
 
-    fgets(buffer, 81, stdin);
-    printf("You wrote: %s\n", buffer);
+    // fgets(buffer, 81, stdin);
+    // printf("You wrote: %s\n", buffer);
 
-    free(buffer);
+    // free(buffer);
     return 0;
 }

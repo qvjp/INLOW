@@ -29,6 +29,8 @@
 #include <stddef.h>                     /* size_t */
 #include <stdint.h>                     /* uint8_t */
 #include <inlow/kernel/addressspace.h>  /**/
+#include <inlow/kernel/directory.h>
+#include <inlow/kernel/file.h>
 #include <inlow/kernel/inlow.h>         /* MULTIBOOT_BOOTLOADER_MAGIC */
 #include <inlow/kernel/interrupt.h>     /* Interrupt::initPic() Interrupt::enable() */
 #include <inlow/kernel/physicalmemory.h>
@@ -88,7 +90,13 @@ extern "C" void kernel_main(uint32_t magic, inlow_phy_addr_t multibootAddress)
     PS2::initialize();
     Print::printf("PS/2 Controller Initialized\n");
 
-    Process::initialize();
+    // Create a root directory with a file.
+    DirectoryVnode* rootDir = new DirectoryVnode();
+    rootDir->addChildNode("hello", new FileVnode());
+    FileDescription* rootFd = new FileDescription(rootDir);
+
+    Process::initialize(rootFd);
+
     Print::printf("Processes Initialized\n");
 
     startProcesses(multiboot);

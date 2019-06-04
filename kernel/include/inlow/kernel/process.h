@@ -37,6 +37,7 @@ class Process
 public:
     Process();
     void exit(int status);
+    int registerFileDescriptor(FileDescription* descr);
 private:
     struct regs* interruptContext;
     Process* prev;
@@ -46,8 +47,10 @@ private:
 public:
     AddressSpace* addressSpace;       /* 每个进程都有自己独立的地址空间 */
     FileDescription* fd[20];
+    FileDescription* rootFd;
+    FileDescription* cwdFd;
 public:
-    static void initialize();
+    static void initialize(FileDescription* rootFd);
     static Process* loadELF(inlow_vir_addr_t elf);
     static struct regs* schedule(struct regs* context);
     static Process* startProcess(void* entry, AddressSpace* addressspace);

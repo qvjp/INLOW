@@ -3,6 +3,8 @@
 
 int fgetc_unlocked(FILE* file) {
     unsigned char result;
-    read(file->fd, &result, 1);
+    if (read(file->fd, &result, 1) < 1) {
+        return EOF;
+    }
     return result;
 }

@@ -34,8 +34,9 @@
 #define SYSCALL_READ 2
 #define SYSCALL_MMAP 3
 #define SYSCALL_MUNMAP 4
+#define SYSCALL_OPENAT 5
 
-#define NUM_SYSCALLS 5
+#define NUM_SYSCALLS 6
 
 
 #endif /* INLOW_SYSCALL_H__ */

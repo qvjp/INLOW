@@ -26,7 +26,12 @@ COMMON_OBJ := \
 	string/memcpy \
 	string/memmove \
 	string/memset \
-	string/strlen
+	string/strlen \
+	string/strcmp \
+	string/strcspn \
+	string/strlen \
+	string/strncmp
+
 
 CRT_OBJ := \
 	$(BUILD)/arch/i686/crt0.o \
@@ -39,11 +44,15 @@ LIBK_OBJ := \
 LIBC_OBJ := \
 	$(COMMON_OBJ) \
 	assert/assert \
+	fcntl/open \
+	fcntl/openat \
+	fcntl/fdopen \
 	stdio/fgetc_unlocked \
 	stdio/fgetc \
 	stdio/fgets_unlocked \
 	stdio/fgets \
 	stdio/flockfile \
+	stdio/fopen \
 	stdio/fprintf \
 	stdio/fputc_unlocked \
 	stdio/fputc \

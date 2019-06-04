@@ -1,6 +1,7 @@
 #include <inlow/kernel/print.h>
 #include <inlow/kernel/process.h>
 #include <inlow/kernel/syscall.h>
+#include <inlow/fcntl.h>
 
 /**
  * 系统调用表
@@ -14,6 +15,7 @@ static const void* syscallList[NUM_SYSCALLS] =
     (void*) Syscall::read,
     (void*) Syscall::mmap,
     (void*) Syscall::munmap,
+    (void*) Syscall::openat,
 };
 
 /**
@@ -59,6 +61,24 @@ void __attribute__((__noreturn__)) Syscall::exit(int status)
      */
     __asm__ __volatile__ ("int $0x31");
     __builtin_unreachable();
+}
+
+int Syscall::openat(int fd, const char* path, int flags, mode_t mode) {
+    FileDescription* descr;
+
+    if (path[0] == '/') {
+        descr = Process::current->rootFd;
+    } else if (fd == AT_FDCWD) {
+        descr = Process::current->cwdFd;
+    } else {
+        descr = Process::current->fd[fd];
+    }
+
+    FileDescription* result = descr->openat(path, flags, mode);
+    if (!result) {
+        return -1;
+    }
+    return Process::current->registerFileDescriptor(result);
 }
 
 ssize_t Syscall::read(int fd, void* buffer, size_t size) {

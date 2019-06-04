@@ -25,11 +25,23 @@
  * utils/bar.s
  * 测试模块，直接退出，状态码73
  */
+#include <stdlib.h>
 #include <stdio.h>
 
-int main(int argc, char* argv[])
-{
-    (void) argc;
-    (void) argv;
-    return 0;
+int main(int argc, char* argv[]) {
+    (void) argc; (void) argv;
+    // printf("Hello %s from userspace!\n", "xiaoming");
+
+    FILE* file = fopen("hello", "r");
+    char* buffer = malloc(81);
+
+    while (fgets(buffer, 20, file)) {
+        printf("Read from file: %s\n", buffer);
+    }
+
+    // fgets(buffer, 81, stdin);
+    // printf("You wrote: %s\n", buffer);
+
+    free(buffer);
+    return 42;
 }
